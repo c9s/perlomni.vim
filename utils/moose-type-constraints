@@ -1,0 +1,12 @@
+#!/usr/bin/env perl
+use PPI;
+
+my $d = PPI::Document->new('/opt/local/lib/perl5/site_perl/5.10.1/Moose/Util/TypeConstraints.pm');
+my $sts = $d->find( sub { 
+        $_[1]->isa('PPI::Statement') and $_[1]->child(0)->content eq 'subtype'
+});
+
+
+my @types = map { $_->child(2)->literal } @$sts;
+print join ' ' , @types , "\n";
+
