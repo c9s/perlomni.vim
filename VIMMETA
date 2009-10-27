@@ -17,7 +17,7 @@
         | autoload/libperl.vim | http://github.com/c9s/libperl.vim/raw/master/autoload/libperl.vim
 
     search-window.vim
-        | plugin/window.vim    | http://github.com/c9s/search-window.vim/raw/master/vimlib/plugin/window.vim
+        | autoload/swindow.vim    | http://github.com/c9s/search-window.vim/raw/master/vimlib/autoload/swindow.vim
 
 =script
 
