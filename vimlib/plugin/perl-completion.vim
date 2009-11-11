@@ -102,14 +102,14 @@ fun! g:PLCompletionWindow.open(pos,type,size,from)
 
   " before we create the search window , we should check autocomplpop by our
   " guard.
-  call g:AutoComplPopGuard.check()
-  call self.split(a:pos,a:type,a:size)
+  cal g:acpguard_class.check()
+  cal self.split(a:pos,a:type,a:size)
 endf
 
 fun! g:PLCompletionWindow.close()
   bw  " we should clean up buffer in every completion
-  call g:AutoComplPopGuard.reveal()
-  call garbagecollect()
+  cal g:acpguard_class.reveal()
+  cal garbagecollect()
   redraw
 endf
 
@@ -137,11 +137,11 @@ fun! g:PLCompletionWindow.init_buffer()
   if self.comp_refer_base =~ '\$\(self\|class\)' 
     let _self = { 'class': 'self' , 'refer': '' , 'functions': [ ] }
     let _self.functions = libperl#grep_file_functions( self.current_file )
-    call insert(self.resource, _self )
+    cal insert(self.resource, _self )
 
     if g:plc_complete_base_class_func
       let base_functions = libperl#parse_base_class_functions( self.current_file )
-      call extend( self.resource , base_functions )
+      cal extend( self.resource , base_functions )
     endif
 
   " if it's from PACKAGE::SOMETHING , find the package file , and parse
@@ -156,11 +156,11 @@ fun! g:PLCompletionWindow.init_buffer()
 
     let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
     let class_comp.functions = libperl#grep_file_functions( filepath )
-    call insert( self.resource , class_comp )
+    cal insert( self.resource , class_comp )
 
     if g:plc_complete_base_class_func
       let base_functions = libperl#parse_base_class_functions( filepath )
-      call extend( self.resource , base_functions )
+      cal extend( self.resource , base_functions )
     endif
 
   " XXX
@@ -172,7 +172,7 @@ fun! g:PLCompletionWindow.init_buffer()
 
   setfiletype PLCompletionWindow
 
-  call append(0, [">> PerlCompletion Window: Complete:<Enter>  Next/Previous Class:<Ctrl-j>/<Ctrl-k>  Next/Previous Entry:<Ctrl-n>/<Ctrl-p> ",""])
+  cal append(0, [">> PerlCompletion Window: Complete:<Enter>  Next/Previous Class:<Ctrl-j>/<Ctrl-k>  Next/Previous Entry:<Ctrl-n>/<Ctrl-p> ",""])
 
   cal self.render_result( self.resource )
 
@@ -182,16 +182,16 @@ fun! g:PLCompletionWindow.init_buffer()
     cal self.update_search()
   endif
 
-  autocmd CursorMovedI <buffer>       call g:PLCompletionWindow.update_search()
-  autocmd BufWinLeave  <buffer>       call g:PLCompletionWindow.close()
+  autocmd CursorMovedI <buffer>       cal g:PLCompletionWindow.update_search()
+  autocmd BufWinLeave  <buffer>       cal g:PLCompletionWindow.close()
   silent file PerlCompletion
 endf
 
 fun! g:PLCompletionWindow.start()
   if strlen( self.comp_base ) > 0
-    call cursor(2, strlen(self.comp_base)+1)
+    cal cursor(2, strlen(self.comp_base)+1)
   else 
-    call cursor(2,1)
+    cal cursor(2,1)
   endif
   startinsert
 endf
@@ -201,12 +201,12 @@ fun! g:PLCompletionWindow.grep_entries(entries,pattern)
   let result = [ ]
   for entry in a:entries
     let entry_result = copy( entry )
-    let entry_result.functions = filter( copy( entry_result.functions )  , 'v:val =~ ''^' . a:pattern . '''' )
+    let entry_result.functions = filter( copy( entry_result.functions )  , 'v:val =~ ''' . a:pattern . '''' )
 
     if strlen( a:pattern ) > 0 && len( entry_result.functions ) > g:plc_max_entries_per_class 
       let entry_result.functions = remove( entry_result.functions , 0 , g:plc_max_entries_per_class )
     endif
-    call add( result , entry_result )
+    cal add( result , entry_result )
   endfor
   return result
 endf
@@ -259,33 +259,33 @@ fun! g:PLCompletionWindow.do_complete()
   let entry = matchstr( line , '\w\+' )
   if line =~ '^\s\s'   " function entry 
     bw
-    call libperl#clear_method_comp_base()
+    cal libperl#clear_method_comp_base()
     if g:plc_complete_paren 
-      call setline( line('.') , getline('.') . entry . '()' )
+      cal setline( line('.') , getline('.') . entry . '()' )
       startinsert
-      call cursor( line('.') , col('$') - 1 )
+      cal cursor( line('.') , col('$') - 1 )
     else
-      call setline( line('.') , getline('.') . entry )
+      cal setline( line('.') , getline('.') . entry )
       startinsert
-      call cursor( line('.') , col('$')  )
+      cal cursor( line('.') , col('$')  )
     endif
   endif
 endf
 
 fun! g:PLCompletionWindow.do_complete_first()
-  call search('^\s\s\w\+')
-  call self.do_complete()
+  cal search('^\s\s\w\+')
+  cal self.do_complete()
 endf
 
 fun! g:PLCompletionWindow.init_mapping()
-  nnoremap <silent> <buffer> <Enter> :call g:PLCompletionWindow.do_complete()<CR>
-  inoremap <silent> <buffer> <Enter> <ESC>:call g:PLCompletionWindow.do_complete_first()<CR>
+  nnoremap <silent> <buffer> <Enter> :cal g:PLCompletionWindow.do_complete()<CR>
+  inoremap <silent> <buffer> <Enter> <ESC>:cal g:PLCompletionWindow.do_complete_first()<CR>
 
-  nnoremap <silent> <buffer> <C-j> :call search('^[a-zA-Z]')<CR>
-  nnoremap <silent> <buffer> <C-k> :call search('^[a-zA-Z]','b')<CR>
+  nnoremap <silent> <buffer> <C-j> :cal search('^[a-zA-Z]')<CR>
+  nnoremap <silent> <buffer> <C-k> :cal search('^[a-zA-Z]','b')<CR>
 
-  inoremap <silent> <buffer> <C-j> <ESC>:call search('^[a-zA-Z]')<CR>
-  inoremap <silent> <buffer> <C-k> <ESC>:call search('^[a-zA-Z]','b')<CR>
+  inoremap <silent> <buffer> <C-j> <ESC>:cal search('^[a-zA-Z]')<CR>
+  inoremap <silent> <buffer> <C-k> <ESC>:cal search('^[a-zA-Z]','b')<CR>
 endf
 
 
@@ -298,6 +298,6 @@ endf
 let g:plc_window_height = 14
 let g:plc_window_position = 'botright'
 
-com! OpenPLCompletionWindow                 :call g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
+com! OpenPLCompletionWindow                 :cal g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
 inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
