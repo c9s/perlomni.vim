@@ -2,9 +2,9 @@
 Screenshot
 ==========
 
-<a target="_blank" href="http://cloud.github.com/downloads/c9s/perl-completion.vim/Screen_shot_2009-11-14_at_2.22.56_PM.png">
-    <img width="300" src="http://cloud.github.com/downloads/c9s/perl-completion.vim/Screen_shot_2009-11-14_at_2.22.56_PM.png"/>
-</a>
+![Alt screenshot](http://cloud.github.com/downloads/c9s/perl-completion.vim/Screen_shot_2009-11-14_at_2.22.56_PM-small.png)
+
+[larger image](http://cloud.github.com/downloads/c9s/perl-completion.vim/Screen_shot_2009-11-14_at_2.22.56_PM.png)
 
 Install
 ========
