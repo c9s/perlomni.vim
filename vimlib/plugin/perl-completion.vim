@@ -301,3 +301,89 @@ let g:plc_window_position = 'botright'
 com! OpenPLCompletionWindow                 :cal g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
 inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
+
+
+
+
+fun! s:FindMethodCompReferStart(line)
+  return searchpos( '\S\+\(->\)\@='  , 'bn' , a:line )
+endf
+
+fun! s:FindMethodCompStart(start,line)
+  let s = a:start
+  while s > 0 && a:line[s - 1] =~ '\a'
+    let s -= 1
+  endwhile
+  return s
+endf
+
+" XXX add preview to this
+fun! PerlComplete(findstart, base)
+  let line = getline('.')
+  let start = col('.') - 1
+  if a:findstart == 1
+    return s:FindMethodCompStart(start,line)
+  else 
+    " hate vim script forgot last position we found 
+    " so we need to find a start again ... orz
+    let s = s:FindMethodCompStart(start,line)
+    let curfile = expand('%')
+
+    " -2 because "->"
+    let ref_start = s:FindMethodCompReferStart(line)
+    let ref_base = strpart( line , ref_start[1] - 1 , s - 1 - ref_start[1] )
+
+    " $self or class
+    let res = [ ]
+    if ref_base =~ '\$\(self\|class\)' 
+      let res = libperl#grep_file_functions( curfile )
+      for token in res 
+        cal complete_add( token )
+      endfor
+      " find base class functions here
+      if 1
+        let bases = libperl#parse_base_class_functions( curfile )
+        "  why there is no such complete_add function takes list ? hate;
+        for b in bases
+          for f in b.functions
+            cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
+            if complete_check()
+              break 
+            endif
+          endfor
+        endfor
+      endif
+    elseif ref_base =~ g:libperl#pkg_token_pattern 
+      let filepath = libperl#get_module_file_path(ref_base)
+      if ! filereadable(filepath)
+        return [ ]
+      endif
+
+      " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
+      let funcs = libperl#grep_file_functions( filepath )
+
+      for f in funcs
+        cal complete_add( { 'word' : f , 'kind': 'f' } )
+      endfor
+
+      if 1
+        let bases = libperl#parse_base_class_functions( filepath )
+        for b in bases
+          for f in b.functions
+            " cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
+            cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class } )
+            if complete_check()
+              break 
+            endif
+          endfor
+        endfor
+      endif
+
+    endif
+    return [ ]
+  endif
+endf
+
+
+" $self->asdfj
+autocmd filetype perl set completefunc=PerlComplete
