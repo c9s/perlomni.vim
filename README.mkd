@@ -1,23 +1,28 @@
 
-SCREENSHOT
+Screenshot
 ==========
 
 ![complete func screenshot](http://cloud.github.com/downloads/c9s/perl-completion.vim/Screen_shot_2009-11-14_at_2.22.56_PM.png)
 
 
-INSTALL
+Install
 ========
 
     $ sudo cpan VIM::Packager
     $ vim-packager build
     $ make install
 
-UNINSTALL
+Integrate With Autocomplpop
+=============================
+
+http://gist.github.com/234417
+
+Uninstall
 =========
 
     $ make uninstall
 
-DEV
+Dev
 ===
 
     $ make link
