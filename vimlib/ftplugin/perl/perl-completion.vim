@@ -301,15 +301,16 @@ let g:plc_window_position = 'botright'
 com! OpenPLCompletionWindow                 :cal g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
 inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
+" Package::Orz
 fun! s:FindPackageCompStart(line)
-  let pos = searchpos( '\w\+$'  , 'bnc' , a:line )
-  return pos[1]
+  return searchpos('\w\+\(::\w\+\)*','bnc',a:line)
 endf
 
 fun! s:FindMethodCompReferStart(line)
-  return searchpos( '\S\+\(->\w*$\)\@='  , 'bnc' , a:line )
+  return searchpos( '\S\+\(->\w*\)\@='  , 'bnc' , a:line )
 endf
 
+" $self->somet..
 fun! s:FindMethodCompStart(line)
   return searchpos('\(->\)\@<=\w*','bnc',a:line)
 endf
@@ -363,9 +364,16 @@ fun! PerlComplete(findstart, base)
   let line = getline('.')
   let start = col('.') - 1
   if a:findstart == 1
-    let space_pos = s:FindSpace(start,line)
+    let s_pos = s:FindSpace(start,line)
 
-    let m_comp = s:FindMethodCompStart(line)
+    let p = s:FindMethodCompStart(line)
+    if s:CompFound(p,s_pos)
+      return m_c[1]
+    endif
+
+    let p = s:Find
+
+
 
     return s:FindMethodCompStart(start,line)
 
