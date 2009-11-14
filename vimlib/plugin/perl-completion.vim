@@ -319,6 +319,24 @@ endf
 
 " XXX add preview to this
 
+
+fun! s:FuncCompAdd(base,list)
+  for f in a:list
+    if f =~ a:base
+      cal complete_add( { 'word' : f , 'kind': 'f' } )
+    endif
+  endfor
+endf
+
+fun! s:ClassCompAdd(base,b)
+  for f in a:b.functions
+    " cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
+    if f =~ a:base
+      cal complete_add({ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
+    endif
+  endfor
+endf
+
 fun! PerlComplete(findstart, base)
   let line = getline('.')
   let start = col('.') - 1
@@ -337,27 +355,19 @@ fun! PerlComplete(findstart, base)
     " $self or class
     let res = [ ]
     if ref_base =~ '\$\(self\|class\)' 
-      let res = libperl#grep_file_functions( curfile )
-      for token in res 
-        if token =~ a:base
-          cal complete_add( token )
-        endif
-      endfor
+      let subs = libperl#grep_file_functions( curfile )
+      cal s:FuncCompAdd( a:base , subs )
+
       " find base class functions here
-      if 1
+      if g:plc_complete_base_class_func
         let bases = libperl#parse_base_class_functions( curfile )
         "  why there is no such complete_add function takes list ? hate;
         for b in bases
-          for f in b.functions
-            if f =~ a:base
-              cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
-            endif
-            if complete_check()
-              break 
-            endif
-          endfor
+          cal s:ClassCompAdd(a:base,b)
         endfor
       endif
+
+    " Package::Sub->
     elseif ref_base =~ g:libperl#pkg_token_pattern 
       let filepath = libperl#get_module_file_path(ref_base)
       if ! filereadable(filepath)
@@ -366,25 +376,12 @@ fun! PerlComplete(findstart, base)
 
       " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
       let funcs = libperl#grep_file_functions( filepath )
+      cal s:FuncCompAdd( a:base , funcs )
 
-      for f in funcs
-        if f =~ a:base
-          cal complete_add( { 'word' : f , 'kind': 'f' } )
-        endif
-      endfor
-
-      if 1
+      if g:plc_complete_base_class_func
         let bases = libperl#parse_base_class_functions( filepath )
         for b in bases
-          for f in b.functions
-            " cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
-            if f =~ a:base
-              cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class } )
-            endif
-            if complete_check()
-              break 
-            endif
-          endfor
+          cal s:ClassCompAdd(a:base,b)
         endfor
       endif
 
