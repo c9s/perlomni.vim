@@ -301,18 +301,38 @@ let g:plc_window_position = 'botright'
 com! OpenPLCompletionWindow                 :cal g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
 inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
-
-
-" XXX:
 fun! s:FindPackageCompStart(line)
-  let pos = searchpos( '\S\+\(->\)\@='  , 'bn' , a:line )
+  let pos = searchpos( '\w\+$'  , 'bn' , a:line )
   return pos[1]
 endf
 
 fun! s:FindMethodCompReferStart(line)
-  return searchpos( '\S\+\(->\)\@='  , 'bn' , a:line )
+  return searchpos( '\S\+\(->\w*$\)\@='  , 'bn' , a:line )
 endf
 
+fun! s:FindMethodCompStart(line)
+  return searchpos('\(->\)\@<=\w*$','bn',a:line)
+endf
+
+fun! s:CompFound(pos,over)
+  if a:pos[0] == 0 && a:pos[1] == 0
+    return 0
+  elseif a:pos[1] < a:over 
+    return 0
+  else
+    return 1
+  endif
+endf
+
+fun! s:FindSpace(start,line)
+  let s = a:start
+  while s > 0 && a:line[s - 1] =~ '\a'
+    let s -= 1
+  endwhile
+  return s
+endf
+
+" $self->something
 fun! s:FindMethodCompStart(start,line)
   let s = a:start
   while s > 0 && a:line[s - 1] =~ '\a'
@@ -343,7 +363,13 @@ fun! PerlComplete(findstart, base)
   let line = getline('.')
   let start = col('.') - 1
   if a:findstart == 1
+
+    let space_pos = s:FindSpace(start,line)
+
+    let pos = s:FindMethodCompStart(line)
+
     return s:FindMethodCompStart(start,line)
+
   else 
     " hate vim script forgot last position we found 
     " so we need to find a start again ... orz
