@@ -303,7 +303,11 @@ inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
 
 
-
+" XXX:
+fun! s:FindPackageCompStart(line)
+  let pos = searchpos( '\S\+\(->\)\@='  , 'bn' , a:line )
+  return pos[1]
+endf
 
 fun! s:FindMethodCompReferStart(line)
   return searchpos( '\S\+\(->\)\@='  , 'bn' , a:line )
@@ -316,9 +320,6 @@ fun! s:FindMethodCompStart(start,line)
   endwhile
   return s
 endf
-
-" XXX add preview to this
-
 
 fun! s:FuncCompAdd(base,list)
   for f in a:list
@@ -337,6 +338,7 @@ fun! s:ClassCompAdd(base,b)
   endfor
 endf
 
+" XXX add preview to this
 fun! PerlComplete(findstart, base)
   let line = getline('.')
   let start = col('.') - 1
@@ -392,4 +394,4 @@ endf
 
 
 " $self->asdfj
-autocmd filetype perl setlocal omnifunc=PerlComplete
+setlocal omnifunc=PerlComplete
