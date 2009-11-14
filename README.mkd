@@ -16,7 +16,7 @@ Install
 Integrate With Autocomplpop
 =============================
 
-http://gist.github.com/234417
+[add this gist to your vimrc](http://gist.github.com/234417)
 
 Uninstall
 =========
