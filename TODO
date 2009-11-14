@@ -1,0 +1,6 @@
+# vim:fdm=expr:fdl=1:foldexpr=getline(v\:lnum)=~'^=='?'>1'\:getline(v\:lnum)[0]=~'[*x(]'?'>2'\:getline(v\:lnum)=~'^--'?'<2'\:'='
+
+* support moose accessor completion
+
+* support moose type constraint completion
+
