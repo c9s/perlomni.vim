@@ -318,6 +318,7 @@ fun! s:FindMethodCompStart(start,line)
 endf
 
 " XXX add preview to this
+
 fun! PerlComplete(findstart, base)
   let line = getline('.')
   let start = col('.') - 1
@@ -338,7 +339,9 @@ fun! PerlComplete(findstart, base)
     if ref_base =~ '\$\(self\|class\)' 
       let res = libperl#grep_file_functions( curfile )
       for token in res 
-        cal complete_add( token )
+        if token =~ a:base
+          cal complete_add( token )
+        endif
       endfor
       " find base class functions here
       if 1
@@ -346,7 +349,9 @@ fun! PerlComplete(findstart, base)
         "  why there is no such complete_add function takes list ? hate;
         for b in bases
           for f in b.functions
-            cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
+            if f =~ a:base
+              cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
+            endif
             if complete_check()
               break 
             endif
@@ -363,7 +368,9 @@ fun! PerlComplete(findstart, base)
       let funcs = libperl#grep_file_functions( filepath )
 
       for f in funcs
-        cal complete_add( { 'word' : f , 'kind': 'f' } )
+        if f =~ a:base
+          cal complete_add( { 'word' : f , 'kind': 'f' } )
+        endif
       endfor
 
       if 1
@@ -371,7 +378,9 @@ fun! PerlComplete(findstart, base)
         for b in bases
           for f in b.functions
             " cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
-            cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class } )
+            if f =~ a:base
+              cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class } )
+            endif
             if complete_check()
               break 
             endif
