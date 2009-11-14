@@ -386,4 +386,4 @@ endf
 
 
 " $self->asdfj
-autocmd filetype perl setlocal completefunc=PerlComplete
+autocmd filetype perl setlocal omnifunc=PerlComplete
