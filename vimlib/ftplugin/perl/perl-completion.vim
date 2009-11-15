@@ -328,6 +328,7 @@ fun! s:CompletePackageFunctions(file,base)
     endif
 endf
 
+" Pac  
 " Package::Orz
 fun! s:FindPackageCompStart()
   return searchpos('\w\+\(::\w\+\)*','bnc')
@@ -403,19 +404,23 @@ fun! PerlComplete(findstart, base)
     let s_pos = s:FindSpace(start,lnum,line)
 
     let p = s:FindMethodCompStart()
+    echo p
+    sleep 1
     if s:CompFound(p,s_pos)
       return p[1]
     endif
 
     let p = s:FindPackageCompStart()
     if s:CompFound(p,s_pos)
-      return p[1]
+      return p[1]-1
     endif
     return 0
   else 
     " hate vim script forgot last position we found 
     " so we need to find a start again ... orz
     let curfile = expand('%')
+
+    " save space positoin to prevent over searching 
     let s_pos = s:FindSpace(start,lnum,line)
     let p = s:FindMethodCompStart()
     if s:CompFound(p,s_pos)
@@ -439,8 +444,6 @@ fun! PerlComplete(findstart, base)
       echo "found package comp start"
       " get package compeltion here
       let ms = libperl#get_installed_cpan_module_list(0)
-      echo a:base
-      sleep 1
       cal s:PackageCompAdd( a:base , ms )
       return [ ]
     endif
