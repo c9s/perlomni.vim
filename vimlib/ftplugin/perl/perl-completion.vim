@@ -292,8 +292,14 @@ endf
 
 
 
+" options
 
+" complete builtin functions by default
+let g:def_perl_comp_bfunction = 1
+" complete package names by default
+let g:def_perl_comp_packagen  = 1
 
+"
 
 let g:plc_window_height = 14
 let g:plc_window_position = 'botright'
@@ -508,11 +514,12 @@ fun! PerlComplete(findstart, base)
 
     if s:HasCompType('default')
       cal s:ClearCompType()
-      cal s:CompleteBFunctions(a:base)
-      if complete_check()
-        return [ ] 
+      if g:def_perl_comp_bfunction
+        cal s:CompleteBFunctions(a:base)
       endif
-      cal s:CompletePackageName(a:base)
+      if g:def_perl_comp_packagen
+        cal s:CompletePackageName(a:base)
+      endif
       return [ ]
     endif
 
