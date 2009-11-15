@@ -301,6 +301,19 @@ let g:plc_window_position = 'botright'
 com! OpenPLCompletionWindow                 :cal g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
 inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
+
+" complete perl built-in functions
+fun! s:CompleteBFunctions(base)
+  let funcs = readfile( expand('~/.vim/perl/perl-functions') )
+  for f in funcs
+    let idx = stridx(f,' ')
+    let f = strpart( f,0,idx )
+    if f =~ a:base
+      cal complete_add( { 'word' : f , 'kind': 'f' } )
+    endif
+  endfor
+endf
+
 fun! s:CompleteSelfFunctions(file,base)
   let subs = libperl#grep_file_functions( a:file )
   cal s:FuncCompAdd( a:base , subs )
@@ -383,22 +396,11 @@ fun! s:CompFound(pos,over)
   else
     return 0
   endif
-"  elseif a:pos[0] == 0 && a:pos[1] == 0
-"    return 0
-"
-"  " return false if we found a pattern before a over position
-"  " or in a different line.
-"  elseif a:pos[1] <= a:over[1] || a:pos[0] != a:over[0]
-"    return 0
-"
-"  else
-"    return 1
-"  endif
 endf
 
 fun! s:FindSpace(col,row,line)
   let s = a:col
-  while s > 0 && a:line[s - 1] =~ '\S'
+  while s > 0 && a:line[s - 1] =~ '\w'
     let s -= 1
   endwhile
   return [a:row,s]
@@ -456,7 +458,7 @@ fun! PerlComplete(findstart, base)
     endif
     
     " default completion type
-    cal s:SetCompType(['package'])
+    cal s:SetCompType(['default'])
     return start
   else 
 
@@ -494,6 +496,7 @@ fun! PerlComplete(findstart, base)
       cal complete_add('strict')
       cal complete_add('warnings')
       cal s:CompletePackageName( a:base )
+      return [ ]
     endif
 
     if s:HasCompType('package')
@@ -502,6 +505,16 @@ fun! PerlComplete(findstart, base)
       return [ ]
     endif
     " =======================================================
+
+    if s:HasCompType('default')
+      cal s:ClearCompType()
+      cal s:CompleteBFunctions(a:base)
+      if complete_check()
+        return [ ] 
+      endif
+      cal s:CompletePackageName(a:base)
+      return [ ]
+    endif
 
   endif
   return [ ]

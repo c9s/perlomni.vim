@@ -20,12 +20,8 @@ has sync_source =>
       is => 'rw');
 
 sub ticket_id {
-    $self->_recode_txn_EmailRecord
-    $self->ticket_id
-
     my $self = shift;
-    my $ticket = shift;
-     return $ticket->{id};
+    $ticket->{id};
 }
 
 sub translate_ticket_state {
