@@ -337,7 +337,7 @@ fun! s:SetCompType(type)
   let s:found_type = a:type
 endf
 
-fun! IsCompType(type)
+fun! s:IsCompType(type)
   return s:found_type == a:type
 endf
 
@@ -436,6 +436,12 @@ fun! PerlComplete(findstart, base)
       cal s:SetCompType('package')
       return p[1]-1
     endif
+
+    if line =~ '^use '
+      cal s:SetCompType('package')
+      return 4
+    endif
+
     return 0
 
   else 
