@@ -3,7 +3,6 @@ use Any::Moose; use strict;
 extends 'App::SD::ForeignReplica::PullEncoder';
 
 # should complete package name and show 'strict' and 'warnings'
-use 
 
 # (blank) should complete 
 #   * package name 
@@ -22,6 +21,7 @@ has sync_source =>
 
 sub ticket_id {
     $self->_recode_txn_EmailRecord
+    $self->ticket_id
 
     my $self = shift;
     my $ticket = shift;

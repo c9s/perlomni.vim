@@ -306,9 +306,9 @@ fun! s:CompleteSelfFunctions(file,base)
   cal s:FuncCompAdd( a:base , subs )
 
   " find base class functions here
+  "  why there is no such complete_add function takes list ? hate;
   if g:plc_complete_base_class_func
     let bases = libperl#parse_base_class_functions( a:file )
-    "  why there is no such complete_add function takes list ? hate;
     for b in bases
       cal s:ClassCompAdd(a:base,b)
     endfor
@@ -316,18 +316,17 @@ fun! s:CompleteSelfFunctions(file,base)
 endf
 
 fun! s:CompletePackageFunctions(file,base)
-    " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
-    let funcs = libperl#grep_file_functions( a:file )
-    cal s:FuncCompAdd( a:base , funcs )
+  " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
+  let funcs = libperl#grep_file_functions( a:file )
+  cal s:FuncCompAdd( a:base , funcs )
 
-    if g:plc_complete_base_class_func
-      let bases = libperl#parse_base_class_functions( a:file )
-      for b in bases
-        cal s:ClassCompAdd(a:base,b)
-      endfor
-    endif
+  if g:plc_complete_base_class_func
+    let bases = libperl#parse_base_class_functions( a:file )
+    for b in bases
+      cal s:ClassCompAdd(a:base,b)
+    endfor
+  endif
 endf
-
 
 fun! s:CompletePackageName(base)
   let ms = libperl#get_installed_cpan_module_list(0)
