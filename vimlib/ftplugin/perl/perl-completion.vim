@@ -328,10 +328,30 @@ fun! s:CompletePackageFunctions(file,base)
     endif
 endf
 
+
+fun! s:GetCompType()
+  return s:found_type
+endf
+
+fun! s:SetCompType(type)
+  let s:found_type = a:type
+endf
+
+fun! IsCompType(type)
+  return s:found_type == a:type
+endf
+
+fun! s:ClearCompType()
+  let s:found_type = ''
+
+endf
+
 " Pac  
 " Package::Orz
 fun! s:FindPackageCompStart()
-  return searchpos('\w\+\(::\w\+\)*','bnc')
+  let p = searchpos('\w\+\(::\w\+\)*','bnc')
+  "let p[1] -= 1
+  return p
 endf
 
 fun! s:FindMethodCompReferStart()
@@ -396,26 +416,32 @@ fun! s:ClassCompAdd(base,b)
 endf
 
 " XXX add preview to this
+
 fun! PerlComplete(findstart, base)
   let line = getline('.')
   let lnum = line('.')
   let start = col('.') - 1
+
   if a:findstart == 1
     let s_pos = s:FindSpace(start,lnum,line)
 
     let p = s:FindMethodCompStart()
-    echo p
-    sleep 1
     if s:CompFound(p,s_pos)
+      cal s:SetCompType('method')
       return p[1]
     endif
 
     let p = s:FindPackageCompStart()
     if s:CompFound(p,s_pos)
+      cal s:SetCompType('package')
       return p[1]-1
     endif
     return 0
+
   else 
+
+    "echo 'found base:' . a:base
+    "sleep 1
     " hate vim script forgot last position we found 
     " so we need to find a start again ... orz
     let curfile = expand('%')
@@ -424,6 +450,9 @@ fun! PerlComplete(findstart, base)
     let s_pos = s:FindSpace(start,lnum,line)
     let p = s:FindMethodCompStart()
     if s:CompFound(p,s_pos)
+      cal s:ClearCompType()
+      "echo 'found method completion'
+      "sleep 1
       " get method compeltion here
       let ref_start = s:FindMethodCompReferStart()
       let ref_base = strpart( line , ref_start[1] - 1 , p[1] - 2 - ref_start[1] )
@@ -439,9 +468,11 @@ fun! PerlComplete(findstart, base)
       return [ ]
     endif
 
-    let p = s:FindPackageCompStart()
-    if s:CompFound(p,s_pos)
-      echo "found package comp start"
+    if s:IsCompType('package')
+      cal s:ClearCompType()
+
+      "echo 'found package comp start'
+      "sleep 1
       " get package compeltion here
       let ms = libperl#get_installed_cpan_module_list(0)
       cal s:PackageCompAdd( a:base , ms )
