@@ -18,6 +18,17 @@ Integrate With Autocomplpop
 
 [add this gist to your vimrc](http://gist.github.com/234417)
 
+Options
+==========
+
+complete builtin functions by default
+
+    let g:def_perl_comp_bfunction = 1
+
+complete package names by default
+
+    let g:def_perl_comp_packagen  = 1
+
 Uninstall
 =========
 
