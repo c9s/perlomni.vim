@@ -301,45 +301,73 @@ let g:plc_window_position = 'botright'
 com! OpenPLCompletionWindow                 :cal g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
 inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
-" Package::Orz
-fun! s:FindPackageCompStart(line)
-  return searchpos('\w\+\(::\w\+\)*','bnc',a:line)
-endf
+fun! s:CompleteSelfFunctions(file,base)
+  let subs = libperl#grep_file_functions( a:file )
+  cal s:FuncCompAdd( a:base , subs )
 
-fun! s:FindMethodCompReferStart(line)
-  return searchpos( '\S\+\(->\w*\)\@='  , 'bnc' , a:line )
-endf
-
-" $self->somet..
-fun! s:FindMethodCompStart(line)
-  return searchpos('\(->\)\@<=\w*','bnc',a:line)
-endf
-
-fun! s:CompFound(pos,over)
-  if a:pos[0] == 0 && a:pos[1] == 0
-    return 0
-  elseif a:pos[1] < a:over 
-    return 0
-  else
-    return 1
+  " find base class functions here
+  if g:plc_complete_base_class_func
+    let bases = libperl#parse_base_class_functions( a:file )
+    "  why there is no such complete_add function takes list ? hate;
+    for b in bases
+      cal s:ClassCompAdd(a:base,b)
+    endfor
   endif
 endf
 
-fun! s:FindSpace(start,line)
-  let s = a:start
-  while s > 0 && a:line[s - 1] =~ '\a'
-    let s -= 1
-  endwhile
-  return s
+fun! s:CompletePackageFunctions(file,base)
+    " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
+    let funcs = libperl#grep_file_functions( a:file )
+    cal s:FuncCompAdd( a:base , funcs )
+
+    if g:plc_complete_base_class_func
+      let bases = libperl#parse_base_class_functions( a:file )
+      for b in bases
+        cal s:ClassCompAdd(a:base,b)
+      endfor
+    endif
 endf
 
-" $self->something
-fun! s:FindMethodCompStart(start,line)
-  let s = a:start
-  while s > 0 && a:line[s - 1] =~ '\a'
+" Package::Orz
+fun! s:FindPackageCompStart()
+  return searchpos('\w\+\(::\w\+\)*','bnc')
+endf
+
+fun! s:FindMethodCompReferStart()
+  return searchpos( '\S\+\(->\w*\)\@='  , 'bnc' )
+endf
+
+" $self->somet..
+fun! s:FindMethodCompStart()
+  return searchpos('\(->\)\@<=\w*','bnc')
+endf
+
+fun! s:CompFound(pos,over)
+  " if searchpos returns [0,0] (pattern not found)
+  if a:pos[1] > a:over[1] && a:pos[0] == a:over[0]
+    return 1
+  else
+    return 0
+  endif
+"  elseif a:pos[0] == 0 && a:pos[1] == 0
+"    return 0
+"
+"  " return false if we found a pattern before a over position
+"  " or in a different line.
+"  elseif a:pos[1] <= a:over[1] || a:pos[0] != a:over[0]
+"    return 0
+"
+"  else
+"    return 1
+"  endif
+endf
+
+fun! s:FindSpace(col,row,line)
+  let s = a:col
+  while s > 0 && a:line[s - 1] =~ '\S'
     let s -= 1
   endwhile
-  return s
+  return [a:row,s]
 endf
 
 fun! s:FuncCompAdd(base,list)
@@ -350,9 +378,16 @@ fun! s:FuncCompAdd(base,list)
   endfor
 endf
 
+fun! s:PackageCompAdd(base,modules)
+  for m in a:modules
+    if m =~ a:base
+      cal complete_add({ 'word': m , 'kind': 't' } )
+    endif
+  endfor
+endf
+
 fun! s:ClassCompAdd(base,b)
   for f in a:b.functions
-    " cal complete_add({ 'word':f , 'kind': 'f' , 'menu': b.class . ' (refer:' . b.refer . ')' } )
     if f =~ a:base
       cal complete_add({ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
     endif
@@ -362,67 +397,55 @@ endf
 " XXX add preview to this
 fun! PerlComplete(findstart, base)
   let line = getline('.')
+  let lnum = line('.')
   let start = col('.') - 1
   if a:findstart == 1
-    let s_pos = s:FindSpace(start,line)
+    let s_pos = s:FindSpace(start,lnum,line)
 
-    let p = s:FindMethodCompStart(line)
+    let p = s:FindMethodCompStart()
     if s:CompFound(p,s_pos)
-      return m_c[1]
+      return p[1]
     endif
 
-    let p = s:Find
-
-
-
-    return s:FindMethodCompStart(start,line)
-
+    let p = s:FindPackageCompStart()
+    if s:CompFound(p,s_pos)
+      return p[1]
+    endif
+    return 0
   else 
     " hate vim script forgot last position we found 
     " so we need to find a start again ... orz
-    let s = s:FindMethodCompStart(start,line)
     let curfile = expand('%')
-
-    " -2 because "->"
-    let ref_start = s:FindMethodCompReferStart(line)
-    let ref_base = strpart( line , ref_start[1] - 1 , s - 1 - ref_start[1] )
-
-    " $self or class
-    let res = [ ]
-    if ref_base =~ '\$\(self\|class\)' 
-      let subs = libperl#grep_file_functions( curfile )
-      cal s:FuncCompAdd( a:base , subs )
-
-      " find base class functions here
-      if g:plc_complete_base_class_func
-        let bases = libperl#parse_base_class_functions( curfile )
-        "  why there is no such complete_add function takes list ? hate;
-        for b in bases
-          cal s:ClassCompAdd(a:base,b)
-        endfor
+    let s_pos = s:FindSpace(start,lnum,line)
+    let p = s:FindMethodCompStart()
+    if s:CompFound(p,s_pos)
+      " get method compeltion here
+      let ref_start = s:FindMethodCompReferStart()
+      let ref_base = strpart( line , ref_start[1] - 1 , p[1] - 2 - ref_start[1] )
+      if ref_base =~ '\$\(self\|class\)' 
+        cal s:CompleteSelfFunctions( curfile , a:base )
+      elseif ref_base =~ g:libperl#pkg_token_pattern 
+        let filepath = libperl#get_module_file_path(ref_base)
+        if ! filereadable(filepath)
+          return [ ]
+        endif
+        cal s:CompletePackageFunctions( filepath , a:base )
       endif
-
-    " Package::Sub->
-    elseif ref_base =~ g:libperl#pkg_token_pattern 
-      let filepath = libperl#get_module_file_path(ref_base)
-      if ! filereadable(filepath)
-        return [ ]
-      endif
-
-      " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
-      let funcs = libperl#grep_file_functions( filepath )
-      cal s:FuncCompAdd( a:base , funcs )
-
-      if g:plc_complete_base_class_func
-        let bases = libperl#parse_base_class_functions( filepath )
-        for b in bases
-          cal s:ClassCompAdd(a:base,b)
-        endfor
-      endif
-
+      return [ ]
     endif
-    return [ ]
+
+    let p = s:FindPackageCompStart()
+    if s:CompFound(p,s_pos)
+      echo "found package comp start"
+      " get package compeltion here
+      let ms = libperl#get_installed_cpan_module_list(0)
+      echo a:base
+      sleep 1
+      cal s:PackageCompAdd( a:base , ms )
+      return [ ]
+    endif
   endif
+  return [ ]
 endf
 
 
