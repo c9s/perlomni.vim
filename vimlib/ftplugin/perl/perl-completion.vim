@@ -329,21 +329,35 @@ fun! s:CompletePackageFunctions(file,base)
 endf
 
 
+fun! s:CompletePackageName(base)
+  let ms = libperl#get_installed_cpan_module_list(0)
+  cal s:PackageCompAdd( a:base , ms )
+endf
+
 fun! s:GetCompType()
-  return s:found_type
+  return s:found_types
 endf
 
+fun! s:AddCompType(type)
+  cal add(s:found_types,a:type) 
+endf
+
+" which is a list
 fun! s:SetCompType(type)
-  let s:found_type = a:type
+  let s:found_types = a:type
 endf
 
-fun! s:IsCompType(type)
-  return s:found_type =~ '^' . a:type
+fun! s:HasCompType(type)
+  for t in s:found_types 
+    if t == a:type
+      return 1
+    endif
+  endfor
+  return 0
 endf
 
 fun! s:ClearCompType()
-  let s:found_type = ''
-
+  let s:found_types = [ ]
 endf
 
 " Pac  
@@ -427,26 +441,24 @@ fun! PerlComplete(findstart, base)
 
     let p = s:FindMethodCompStart()
     if s:CompFound(p,s_pos)
-      cal s:SetCompType('method')
+      cal s:SetCompType(['method'])
       return p[1]
     endif
 
     let p = s:FindPackageCompStart()
     if s:CompFound(p,s_pos)
-      cal s:SetCompType('package')
+      cal s:SetCompType(['package'])
       return p[1]-1
     endif
 
     if line =~ '^use '
-      cal s:SetCompType('package-use')
+      cal s:SetCompType(['package-use'])
       return 4
     endif
-
     
     " default completion type
-    cal s:SetCompType('package')
+    cal s:SetCompType(['package'])
     return start
-
   else 
 
     "echo 'found base:' . a:base
@@ -460,6 +472,7 @@ fun! PerlComplete(findstart, base)
     let p = s:FindMethodCompStart()
     if s:CompFound(p,s_pos)
       cal s:ClearCompType()
+
       "echo 'found method completion'
       "sleep 1
       " get method compeltion here
@@ -468,33 +481,28 @@ fun! PerlComplete(findstart, base)
       if ref_base =~ '\$\(self\|class\)' 
         cal s:CompleteSelfFunctions( curfile , a:base )
       elseif ref_base =~ g:libperl#pkg_token_pattern 
-        let filepath = libperl#get_module_file_path(ref_base)
-        if ! filereadable(filepath)
-          return [ ]
+        let f = libperl#get_module_file_path(ref_base)
+        if filereadable(f)
+          cal s:CompletePackageFunctions( f , a:base )
         endif
-        cal s:CompletePackageFunctions( filepath , a:base )
       endif
       return [ ]
     endif
 
     " package completion ====================================
-    if s:IsCompType('package-use')
+    if s:HasCompType('package-use')
+      cal s:ClearCompType()
       cal complete_add('strict')
       cal complete_add('warnings')
+      cal s:CompletePackageName( a:base )
     endif
 
-    if s:IsCompType('package')
+    if s:HasCompType('package')
       cal s:ClearCompType()
-
-      "echo 'found package comp start'
-      "sleep 1
-      " get package compeltion here
-      let ms = libperl#get_installed_cpan_module_list(0)
-      cal s:PackageCompAdd( a:base , ms )
+      cal s:CompletePackageName( a:base )
       return [ ]
     endif
     " =======================================================
-
 
   endif
   return [ ]
