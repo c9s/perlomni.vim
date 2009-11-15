@@ -299,8 +299,6 @@ let g:def_perl_comp_bfunction = 1
 " complete package names by default
 let g:def_perl_comp_packagen  = 1
 
-"
-
 let g:plc_window_height = 14
 let g:plc_window_position = 'botright'
 
@@ -378,10 +376,12 @@ fun! s:ClearCompType()
   let s:found_types = [ ]
 endf
 
+
+" ====================== Complete Patterns
 " Pac  
 " Package::Orz
 fun! s:FindPackageCompStart()
-  let p = searchpos('\w\+\(::\w\+\)*','bnc')
+  let p = searchpos('\w\+::\w*','bnc')
   "let p[1] -= 1
   return p
 endf

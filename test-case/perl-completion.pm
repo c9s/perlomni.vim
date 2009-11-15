@@ -1,6 +1,9 @@
 package App::SD::Replica::rt::PullEncoder;
 use Any::Moose; use strict;
 extends 'App::SD::ForeignReplica::PullEncoder';
+use strict;
+use warnings;
+
 
 # should complete package name and show 'strict' and 'warnings'
 
