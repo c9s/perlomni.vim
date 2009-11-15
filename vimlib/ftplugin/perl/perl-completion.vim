@@ -1,82 +1,9 @@
 " vim:fdm=syntax:fdl=1:et:sw=2:
 "
-"=VERSION 1.0
+"=Version 1.0
+"=Author  Cornelius
+"=Email   cornelius.howl@gmail.com 
 "
-" Perl Completion Features:"{{{
-"
-" Self Completion:
-"
-"   when user type '$self->' or '$class->' , press [key] to trigger completion function
-"       (or just map '->' key to trigger completion function)
-"           
-"           the completion should include:
-"               function name
-"               accessor
-"
-"   and should complete the '->' and open a completion window 
-"   and list all matched items
-" 
-" when user type $App::Class:: , then press [key] to trigger completion function
-"
-"           the completion should include:
-"               variable name
-"
-" when user type App::Class:: , then press [key] to trigger completion function
-"
-"           the completion should include:
-"               function name
-"               constants
-"
-" Synopsis For Moose:
-"
-"   for perl moose program like:
-"
-"     use Moose;
-"
-"     has sync_source => 
-"         ( isa => 'App::SD::Replica::rt',
-"           is => 'rw');
-"
-"   when user type $self->  then press key to complete:
-"     should complete sync_source  and other functions from $self
-"
-"   when user type $self->sync_source-> , then press key to complete:
-"     should complete the methods that sync_source class provided.
-"
-"
-" Other Features:
-"   when completion item just found one, should just append the completion ,
-"   not to open the completion window
-"
-"   when user typing, it should automatically update the line (option)
-"   and update completion result in the bottom window , and highlight 
-"   the matched part
-"
-" user type C-n , C-p to select item to complete
-" then press <Enter> to complete with the selected item.
-" after all , the completion window should be closed
-"
-" type C-j , C-k to jump between package sections
-"
-" Completion Window:
-"
-" App::Base::Class
-"   [var name]
-"   [function name]  (line nn)
-"   [function name]  (line nn)
-"
-" App::Class
-"   [var name]
-"   [function name]  (line nn)
-"       ==review==
-"       sub function_name {
-"           my $self = shift;
-"           my @args = %_;
-"
-"   [function]       (line nn)
-"   [function]       (line nn)
-"   [function]       (line nn)
-"   [function]       (line nn)
 "}}}
 
 let g:plc_complete_base_class_func = 1
@@ -378,8 +305,12 @@ endf
 
 
 " ====================== Complete Patterns
-" Pac  
-" Package::Orz
+
+fun! s:FindVariableCompStart()
+
+endf
+
+" Package::*
 fun! s:FindPackageCompStart()
   let p = searchpos('\w\+::\w*','bnc')
   "let p[1] -= 1
