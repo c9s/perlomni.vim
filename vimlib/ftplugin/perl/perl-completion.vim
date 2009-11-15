@@ -338,7 +338,7 @@ fun! s:SetCompType(type)
 endf
 
 fun! s:IsCompType(type)
-  return s:found_type == a:type
+  return s:found_type =~ '^' . a:type
 endf
 
 fun! s:ClearCompType()
@@ -438,11 +438,14 @@ fun! PerlComplete(findstart, base)
     endif
 
     if line =~ '^use '
-      cal s:SetCompType('package')
+      cal s:SetCompType('package-use')
       return 4
     endif
 
-    return 0
+    
+    " default completion type
+    cal s:SetCompType('package')
+    return start
 
   else 
 
@@ -474,6 +477,12 @@ fun! PerlComplete(findstart, base)
       return [ ]
     endif
 
+    " package completion ====================================
+    if s:IsCompType('package-use')
+      cal complete_add('strict')
+      cal complete_add('warnings')
+    endif
+
     if s:IsCompType('package')
       cal s:ClearCompType()
 
@@ -484,6 +493,9 @@ fun! PerlComplete(findstart, base)
       cal s:PackageCompAdd( a:base , ms )
       return [ ]
     endif
+    " =======================================================
+
+
   endif
   return [ ]
 endf
