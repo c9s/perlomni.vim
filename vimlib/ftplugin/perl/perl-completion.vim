@@ -1,6 +1,6 @@
 " vim:fdm=syntax:fdl=1:et:sw=2:
 "
-"=VERSION 0.5
+"=VERSION 0.6
 "
 " Perl Completion Features:"{{{
 "
