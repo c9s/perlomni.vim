@@ -13,6 +13,11 @@ Install
     $ vim-packager build
     $ make install
 
+Usage
+=====
+
+ C-x C-o to emit omnicompletion.
+
 Integrate With Autocomplpop
 =============================
 

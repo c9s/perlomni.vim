@@ -305,16 +305,13 @@ endf
 
 
 " ====================== Complete Patterns
-
 fun! s:FindVariableCompStart()
 
 endf
 
 " Package::O
 fun! s:FindPackageCompStart()
-  "let p = searchpos('\w\+\:\:\w*','bnc')
-  let p = searchpos('[A-Z]\w\+\(::\w\+\)*','bnc')
-  return p
+  return searchpos('[A-Z]\w\+\(::\w\+\)*','bnc')
 endf
 
 fun! s:FindMethodCompReferStart()
