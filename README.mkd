@@ -9,9 +9,31 @@ Screenshot
 Install
 ========
 
+perl-completion.vim comes with some depended vim scripts (libperl.vim and search-window.vim)
+and perl-completion.vim is using PPI (pure perl parser) to parse perl syntax to make completions.
+
+the util scripts will be installed to ~/.vim/bin/ , so please add ~/.vim/bin/ to your $PATH env variable.
+add this to your .bashrc or .zshrc:
+
+    export PATH=~/.vim/bin/:$PATH
+
+under the perl-completion.vim directory there is a META file, which noted the version and dependencies.
+VIM::Packager is for solving dependency problem. please install VIM::Packager first:
+
     $ sudo cpan VIM::Packager
+
+then we use vim-packager script to generate Makefile:
+
     $ vim-packager build
+
+then install:
+
     $ make install
+
+Usage
+=====
+
+ C-x C-o to emit omnicompletion.
 
 Integrate With Autocomplpop
 =============================
