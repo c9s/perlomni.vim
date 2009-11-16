@@ -310,10 +310,10 @@ fun! s:FindVariableCompStart()
 
 endf
 
-" Package::*
+" Package::O
 fun! s:FindPackageCompStart()
-  let p = searchpos('\w\+::\w*','bnc')
-  "let p[1] -= 1
+  "let p = searchpos('\w\+\:\:\w*','bnc')
+  let p = searchpos('[A-Z]\w\+\(::\w\+\)*','bnc')
   return p
 endf
 
@@ -337,7 +337,7 @@ endf
 
 fun! s:FindSpace(col,row,line)
   let s = a:col
-  while s > 0 && a:line[s - 1] =~ '\w'
+  while s > 0 && a:line[s - 1] =~ '\S'
     let s -= 1
   endwhile
   return [a:row,s]
@@ -399,8 +399,6 @@ fun! PerlComplete(findstart, base)
     return start
   else 
 
-    "echo 'found base:' . a:base
-    "sleep 1
     " hate vim script forgot last position we found 
     " so we need to find a start again ... orz
     let curfile = expand('%')
@@ -411,8 +409,6 @@ fun! PerlComplete(findstart, base)
     if s:CompFound(p,s_pos)
       cal s:ClearCompType()
 
-      "echo 'found method completion'
-      "sleep 1
       " get method compeltion here
       let ref_start = s:FindMethodCompReferStart()
       let ref_base = strpart( line , ref_start[1] - 1 , p[1] - 2 - ref_start[1] )

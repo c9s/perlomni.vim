@@ -4,8 +4,8 @@ extends 'App::SD::ForeignReplica::PullEncoder';
 use strict;
 use warnings;
 
-
 # should complete package name and show 'strict' and 'warnings'
+use 
 
 # (blank) should complete 
 #   * package name 
@@ -17,6 +17,10 @@ use warnings;
 #       * extends 
 #       * after
 #       * before 
+
+# capitalize word should be completed with package names
+MyApp
+AnyEvent::
 
 has sync_source => 
     ( isa => 'App::SD::Replica::rt',
