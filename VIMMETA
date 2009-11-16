@@ -16,7 +16,7 @@
 #    [name] >= [version]
 
     libperl.vim
-        | autoload/libperl.vim | http://github.com/c9s/libperl.vim/raw/master/autoload/libperl.vim
+        | autoload/libperl.vim | http://github.com/c9s/libperl.vim/raw/master/vimlib/autoload/libperl.vim
 
     search-window.vim
         | autoload/swindow.vim  | http://github.com/c9s/search-window.vim/raw/master/vimlib/autoload/swindow.vim
