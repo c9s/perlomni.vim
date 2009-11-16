@@ -48,7 +48,7 @@ sub find_base_classes {
             push @bases, ( eval $elements[ 2 ]->content );
         }
         # it's from "use base"
-        elsif( $st->isa('PPI::Statement::Include') and $elements[2]->content eq 'base' ) {
+        elsif( $st->isa('PPI::Statement::Include') and $elements[2] and $elements[2]->content eq 'base' ) {
             push @bases, ( eval $elements[ 4 ]->content );   # 'use',' ','base','qw/ ...... /',';'
         }
 
