@@ -1,8 +1,8 @@
 " vim:fdm=syntax:fdl=1:et:sw=2:
 "
-"=Version 1.0
-"=Author  Cornelius
-"=Email   cornelius.howl@gmail.com 
+" Version: 1.1
+" Author:  Cornelius
+" Email:   cornelius.howl@gmail.com 
 "
 "}}}
 
