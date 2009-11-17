@@ -273,7 +273,7 @@ fun! s:CompletePackageFunctions(file,base)
 endf
 
 fun! s:CompletePackageName(base)
-  let ms = libperl#get_installed_cpan_module_list(0)
+  let ms = libperl#get_cpan_installed_module_list(0)
   cal s:PackageCompAdd( a:base , ms )
 endf
 
