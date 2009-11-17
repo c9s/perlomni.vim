@@ -7,3 +7,4 @@
 * support object method completion (variable look backward search in a range)
 * support for class::accessor::fast accessor completion (with r,w attribute)
 * add makefile.pl to declare util perl scripts dependencies.
+* some of part code is depending other scripts, fix this.
