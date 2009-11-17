@@ -5,3 +5,4 @@
 * support moose type constraint completion
 
 * support object method completion (variable look backward search in a range)
+* support for class::accessor::fast accessor completion (with r,w attribute)
