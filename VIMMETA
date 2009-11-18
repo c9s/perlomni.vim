@@ -3,7 +3,7 @@
 
 =author         Cornelius
 
-=version_from   vimlib/ftplugin/perl/perl-completion.vim
+=version_from   vimlib/ftplugin/perl/perlomni.vim
 
 =vim_version    >= 7.0
 
