@@ -173,6 +173,9 @@ fun! PerlComplete(findstart, base)
   if a:findstart == 1
     let s_pos = s:FindSpace(start,lnum,line)
 
+
+    " XXX: read lines from current buffer
+    " let b:lines   = 
     let b:context = getline('.')
     let b:lcontext = strpart(getline('.'),0,col('.')-1)
     let b:colpos  = col('.') - 1
