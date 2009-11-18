@@ -24,6 +24,10 @@ please install VIM::Packager first:
 
     $ sudo cpan VIM::Packager
 
+and the perl code parsing stuff needs PPI:
+
+    $ sudo cpan PPI
+
 then we use vim-packager script to generate Makefile:
 
     $ vim-packager build
