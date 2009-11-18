@@ -1,8 +1,9 @@
 " vim:fdm=syntax:fdl=1:et:sw=2:
 "
-" Version: 1.1
+" Plugin:  perl-completion.vim
 " Author:  Cornelius
 " Email:   cornelius.howl@gmail.com 
+" Version: 1.2
 "
 "}}}
 
@@ -235,8 +236,13 @@ inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
 " complete perl built-in functions
 fun! s:CompleteBFunctions(base)
-  let funcs = readfile( expand('~/.vim/perl/perl-functions') )
-  for f in funcs
+
+  " find cache
+  if !exists('g:p5functions') 
+    let g:p5bfunctions = readfile( expand('~/.vim/perl/perl-functions') )
+  endif
+
+  for f in g:p5bfunctions
     let idx = stridx(f,' ')
     let f = strpart( f,0,idx )
     if f =~ a:base
