@@ -252,7 +252,16 @@ fun! s:CompleteBFunctions(base)
 endf
 
 fun! s:CompleteSelfFunctions(file,base)
-  let subs = libperl#grep_file_functions( a:file )
+
+  if ! exists('g:p5sfunctions')
+    let g:p5sfunctions = {}
+  endif
+
+  if ! exists('g:p5sfunctions[ a:file ]')
+    let g:p5sfunctions[a:file] = libperl#grep_file_functions( a:file )
+  endif
+
+  let subs = g:p5sfunctions[a:file]
   cal s:FuncCompAdd( a:base , subs )
 
   " find base class functions here
