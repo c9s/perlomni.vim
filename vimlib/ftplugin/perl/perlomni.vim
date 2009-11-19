@@ -170,7 +170,7 @@ fun! PerlComplete(findstart, base)
   let lnum = line('.')
   let start = col('.') - 1
 
-  if a:findstart == 1
+  if a:findstart
     let s_pos = s:FindSpace(start,lnum,line)
 
 
@@ -183,13 +183,13 @@ fun! PerlComplete(findstart, base)
     let p = s:FindMethodCompStart()
     if s:CompFound(p,s_pos)
       cal s:SetCompType(['method'])
-      return p[1]
+      return p[1] - 1
     endif
 
     let p = s:FindPackageCompStart()
     if s:CompFound(p,s_pos)
       cal s:SetCompType(['package'])
-      return p[1]-1
+      return p[1] - 1
     endif
 
     if line =~ '^use '
