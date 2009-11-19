@@ -238,7 +238,7 @@ inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 fun! s:CompleteBFunctions(base)
 
   " find cache
-  if !exists('g:p5functions') 
+  if !exists('g:p5bfunctions') 
     let g:p5bfunctions = readfile( expand('~/.vim/perl/perl-functions') )
   endif
 
