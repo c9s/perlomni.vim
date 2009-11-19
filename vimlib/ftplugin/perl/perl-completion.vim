@@ -386,13 +386,13 @@ fun! PerlComplete(findstart, base)
   let lnum = line('.')
   let start = col('.') - 1
 
-  if a:findstart == 1
+  if a:findstart
     let s_pos = s:FindSpace(start,lnum,line)
 
     let p = s:FindMethodCompStart()
     if s:CompFound(p,s_pos)
       cal s:SetCompType(['method'])
-      return p[1]
+      return p[1] - 1
     endif
 
     let p = s:FindPackageCompStart()
@@ -408,7 +408,7 @@ fun! PerlComplete(findstart, base)
     
     " default completion type
     cal s:SetCompType(['default'])
-    return start
+    return s_pos[1] - 1
   else 
 
     " hate vim script forgot last position we found 
