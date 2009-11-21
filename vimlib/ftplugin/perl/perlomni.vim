@@ -31,7 +31,7 @@ fun! s:CompleteBFunctions(base)
   for f in g:p5bfunctions
     let idx = stridx(f,' ')
     let f = strpart( f,0,idx )
-    if f =~ a:base
+    if f =~ '^'.a:base
       "cal complete_add( { 'word' : f , 'kind': 'f' } )
       cal add(s:comp_items, { 'word' : f , 'kind': 'f' } )
     endif
@@ -144,7 +144,7 @@ endf
 
 fun! s:FuncCompAdd(base,list)
   for f in a:list
-    if f =~ a:base
+    if f =~ '^' . a:base
       " cal complete_add( { 'word' : f , 'kind': 'f' } )
       cal add( s:comp_items, { 'word' : f , 'kind': 'f' } )
     endif
@@ -153,7 +153,7 @@ endf
 
 fun! s:PackageCompAdd(base,modules)
   for m in a:modules
-    if m =~ a:base
+    if m =~ '^'. a:base
       "cal complete_add({ 'word': m , 'kind': 't' } )
       cal add(s:comp_items,{ 'word': m , 'kind': 't' } )
     endif
@@ -162,7 +162,7 @@ endf
 
 fun! s:ClassCompAdd(base,b)
   for f in a:b.functions
-    if f =~ a:base
+    if f =~ '^'.a:base
       "cal complete_add({ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
       cal add(s:comp_items,{ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
     endif
