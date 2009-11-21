@@ -32,7 +32,8 @@ fun! s:CompleteBFunctions(base)
     let idx = stridx(f,' ')
     let f = strpart( f,0,idx )
     if f =~ a:base
-      cal complete_add( { 'word' : f , 'kind': 'f' } )
+      "cal complete_add( { 'word' : f , 'kind': 'f' } )
+      cal add(s:comp_items, { 'word' : f , 'kind': 'f' } )
     endif
   endfor
 endf
@@ -144,7 +145,8 @@ endf
 fun! s:FuncCompAdd(base,list)
   for f in a:list
     if f =~ a:base
-      cal complete_add( { 'word' : f , 'kind': 'f' } )
+      " cal complete_add( { 'word' : f , 'kind': 'f' } )
+      cal add( s:comp_items, { 'word' : f , 'kind': 'f' } )
     endif
   endfor
 endf
@@ -152,7 +154,8 @@ endf
 fun! s:PackageCompAdd(base,modules)
   for m in a:modules
     if m =~ a:base
-      cal complete_add({ 'word': m , 'kind': 't' } )
+      "cal complete_add({ 'word': m , 'kind': 't' } )
+      cal add(s:comp_items,{ 'word': m , 'kind': 't' } )
     endif
   endfor
 endf
@@ -160,7 +163,8 @@ endf
 fun! s:ClassCompAdd(base,b)
   for f in a:b.functions
     if f =~ a:base
-      cal complete_add({ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
+      "cal complete_add({ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
+      cal add(s:comp_items,{ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
     endif
   endfor
 endf
@@ -201,6 +205,7 @@ fun! PerlComplete(findstart, base)
     cal s:SetCompType(['default'])
     return start
   else 
+    let s:comp_items = [ ]
 
     " hate vim script forgot last position we found 
     " so we need to find a start again ... orz
@@ -223,22 +228,24 @@ fun! PerlComplete(findstart, base)
           cal s:CompletePackageFunctions( f , a:base )
         endif
       endif
-      return [ ]
+      return s:comp_items
     endif
 
     " package completion ====================================
     if s:HasCompType('package-use')
       cal s:ClearCompType()
-      cal complete_add('strict')
-      cal complete_add('warnings')
+      cal add(s:comp_items,'strict')
+      cal add(s:comp_items,'warnings')
+      "cal complete_add('strict')
+      "cal complete_add('warnings')
       cal s:CompletePackageName( a:base )
-      return [ ]
+      return s:comp_items
     endif
 
     if s:HasCompType('package')
       cal s:ClearCompType()
       cal s:CompletePackageName( a:base )
-      return [ ]
+      return s:comp_items
     endif
     " =======================================================
 
@@ -250,11 +257,11 @@ fun! PerlComplete(findstart, base)
       if g:def_perl_comp_packagen
         cal s:CompletePackageName(a:base)
       endif
-      return [ ]
+      return s:comp_items
     endif
 
   endif
-  return [ ]
+  return s:comp_items
 endf
 
 
