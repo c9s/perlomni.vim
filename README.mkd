@@ -49,11 +49,6 @@ Usage
 
  C-x C-o to emit omnicompletion.
 
-Integrate With Autocomplpop
-=============================
-
-[add this gist to your vimrc](http://gist.github.com/234417)
-
 Options
 ==========
 
