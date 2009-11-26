@@ -77,7 +77,7 @@ fun! g:PLCompletionWindow.init_buffer()
     let filepath = libperl#get_module_file_path(class)
 
     if ! filereadable(filepath)
-      throw 'SKIP: no completions for this package: ' .class 
+      return
     endif
 
     let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
