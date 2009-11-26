@@ -13,7 +13,7 @@ perl-completion.vim comes with some depended vim scripts (libperl.vim and
 search-window.vim) and perl-completion.vim is using PPI (pure perl parser) to
 parse perl syntax to make completions.
 
-the util scripts will be installed to ~/.vim/bin/ , so please add ~/.vim/bin/
+the util scripts will be installed to `~/.vim/bin/` , so please add `~/.vim/bin/`
 to your $PATH env variable.  add this to your .bashrc or .zshrc:
 
     export PATH=~/.vim/bin/:$PATH
