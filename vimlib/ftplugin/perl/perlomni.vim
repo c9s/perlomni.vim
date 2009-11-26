@@ -2,9 +2,7 @@
 " Plugin:  perl-completion.vim
 " Author:  Cornelius
 " Email:   cornelius.howl@gmail.com 
-" Version: 1.4
-
-
+" Version: 1.5
 
 
 " Options:
@@ -19,6 +17,14 @@ let g:plc_window_position = 'botright'
 com! OpenPLCompletionWindow                 :cal g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
 inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
 
+
+fun! s:FindVarPackageName(var)
+  for l in b:file
+    if l =~  '\('.escape(a:var,'$\').'\s*=\s*\)\@<=[A-Z][a-z:]*\(->new\)\@='
+      return matchstr( l , '\(\s*=\s*\)\@<=[A-Z][a-z:]*\(->new\)\@=' )
+    endif
+  endfor
+endf
 
 " complete perl built-in functions
 fun! s:CompleteBFunctions(base)
@@ -177,12 +183,11 @@ fun! PerlComplete(findstart, base)
   if a:findstart
     let s_pos = s:FindSpace(start,lnum,line)
 
-
     " XXX: read lines from current buffer
     " let b:lines   = 
-    let b:context = getline('.')
+    let b:context  = getline('.')
     let b:lcontext = strpart(getline('.'),0,col('.')-1)
-    let b:colpos  = col('.') - 1
+    let b:colpos   = col('.') - 1
 
     let p = s:FindMethodCompStart()
     if s:CompFound(p,s_pos)
@@ -205,6 +210,9 @@ fun! PerlComplete(findstart, base)
     cal s:SetCompType(['default'])
     return start
   else 
+    " cache this
+    let b:file = getline(1, '$')
+
     let s:comp_items = [ ]
 
     " hate vim script forgot last position we found 
@@ -222,6 +230,19 @@ fun! PerlComplete(findstart, base)
       let ref_base = strpart( line , ref_start[1] - 1 , p[1] - 2 - ref_start[1] )
       if ref_base =~ '\$\(self\|class\)' 
         cal s:CompleteSelfFunctions( curfile , a:base )
+
+      " XXX: complete special variable if needed.
+      elseif ref_base =~ '\$\w\+'
+        let var = ref_base
+        let pkg = s:FindVarPackageName( var )
+        if strlen(pkg) > 0 
+          let f = libperl#get_module_file_path(pkg)
+          if filereadable(f)
+            cal s:CompletePackageFunctions( f , a:base )
+          endif
+        else
+          return s:comp_items
+        endif
       elseif ref_base =~ g:libperl#pkg_token_pattern 
         let f = libperl#get_module_file_path(ref_base)
         if filereadable(f)
