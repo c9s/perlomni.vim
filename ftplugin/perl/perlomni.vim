@@ -4,20 +4,6 @@
 " Email:   cornelius.howl@gmail.com 
 " Version: 1.73
 
-
-" Options:
-" complete builtin functions by default
-let g:def_perl_comp_bfunction = 1
-" complete package names by default
-let g:def_perl_comp_packagen  = 1
-
-let g:plc_window_height = 14
-let g:plc_window_position = 'botright'
-
-com! OpenPLCompletionWindow                 :cal g:PLCompletionWindow.open(g:plc_window_position, 'split',g:plc_window_height,getline('.'))
-inoremap <silent> <C-x><C-x>                <ESC>:OpenPLCompletionWindow<CR>
-
-
 fun! s:FindVarPackageName(var)
   for l in b:file
     if l =~  '\('.escape(a:var,'$\').'\s*=\s*\)\@<=[A-Z][a-z:]*\(->new\)\@='
@@ -25,8 +11,6 @@ fun! s:FindVarPackageName(var)
     endif
   endfor
 endf
-
-
 
 let g:p5bfunctions = ["abs", "accept", "alarm", "atan2", "bind", "binmode", "bless", "break",
  \ "caller", "chdir", "chmod", "chomp", "chop", "chown", "chr", "chroot",
@@ -61,7 +45,7 @@ let g:p5bfunctions = ["abs", "accept", "alarm", "atan2", "bind", "binmode", "ble
 
 " complete perl built-in functions
 fun! s:CompleteBFunctions(base)
-  cal extend(s:comp_items,map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }') )
+  cal extend(b:comp_items,map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }') )
 endf
 
 fun! s:GrepFileFunctions(file)
@@ -87,25 +71,20 @@ fun! s:CompleteSelfFunctions(file,base)
 
   " find base class functions here
   "  why there is no such complete_add function takes list ? hate;
-  if g:plc_complete_base_class_func
-    let bases = libperl#parse_base_class_functions( a:file )
-    for b in bases
-      cal s:ClassCompAdd(a:base,b)
-    endfor
-  endif
+  let bases = libperl#parse_base_class_functions( a:file )
+  for b in bases
+    cal s:ClassCompAdd(a:base,b)
+  endfor
 endf
 
 fun! s:CompletePackageFunctions(file,base)
   " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
   let funcs = s:GrepFileFunctions( a:file )
   cal s:FuncCompAdd( a:base , funcs )
-
-  if g:plc_complete_base_class_func
-    let bases = libperl#parse_base_class_functions( a:file )
-    for b in bases
-      cal s:ClassCompAdd(a:base,b)
-    endfor
-  endif
+  let bases = libperl#parse_base_class_functions( a:file )
+  for b in bases
+    cal s:ClassCompAdd(a:base,b)
+  endfor
 endf
 
 fun! s:CompletePackageName(base)
@@ -180,7 +159,7 @@ fun! s:FuncCompAdd(base,list)
   for f in a:list
     if f =~ '^' . a:base
       " cal complete_add( { 'word' : f , 'kind': 'f' } )
-      cal add( s:comp_items, { 'word' : f , 'kind': 'f' } )
+      cal add( b:comp_items, { 'word' : f , 'kind': 'f' } )
     endif
   endfor
 endf
@@ -189,7 +168,7 @@ fun! s:PackageCompAdd(base,modules)
   for m in a:modules
     if m =~ '^'. a:base
       "cal complete_add({ 'word': m , 'kind': 't' } )
-      cal add(s:comp_items,{ 'word': m , 'kind': 't' } )
+      cal add(b:comp_items,{ 'word': m , 'kind': 't' } )
     endif
   endfor
 endf
@@ -198,7 +177,7 @@ fun! s:ClassCompAdd(base,b)
   for f in a:b.functions
     if f =~ '^'.a:base
       "cal complete_add({ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
-      cal add(s:comp_items,{ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
+      cal add(b:comp_items,{ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
     endif
   endfor
 endf
@@ -241,7 +220,7 @@ fun! PerlComplete(findstart, base)
     " cache this
     let b:file = getline(1, '$')
 
-    let s:comp_items = [ ]
+    let b:comp_items = [ ]
 
     " hate vim script forgot last position we found 
     " so we need to find a start again ... orz
@@ -269,7 +248,7 @@ fun! PerlComplete(findstart, base)
             cal s:CompletePackageFunctions( f , a:base )
           endif
         else
-          return s:comp_items
+          return b:comp_items
         endif
       elseif ref_base =~ g:libperl#pkg_token_pattern 
         let f = libperl#get_module_file_path(ref_base)
@@ -277,42 +256,37 @@ fun! PerlComplete(findstart, base)
           cal s:CompletePackageFunctions( f , a:base )
         endif
       endif
-      return s:comp_items
+      return b:comp_items
     endif
 
     " package completion ====================================
     if s:HasCompType('package-use')
       cal s:ClearCompType()
-      cal add(s:comp_items,'strict')
-      cal add(s:comp_items,'warnings')
+      cal add(b:comp_items,'strict')
+      cal add(b:comp_items,'warnings')
       "cal complete_add('strict')
       "cal complete_add('warnings')
       cal s:CompletePackageName( a:base )
-      return s:comp_items
+      return b:comp_items
     endif
 
     if s:HasCompType('package')
       cal s:ClearCompType()
       cal s:CompletePackageName( a:base )
-      return s:comp_items
+      return b:comp_items
     endif
     " =======================================================
 
     if s:HasCompType('default')
       cal s:ClearCompType()
-      if g:def_perl_comp_bfunction
-        cal s:CompleteBFunctions(a:base)
-      endif
-      if g:def_perl_comp_packagen
-        cal s:CompletePackageName(a:base)
-      endif
-      return s:comp_items
+      cal s:CompleteBFunctions(a:base)
+      cal s:CompletePackageName(a:base)
+      return b:comp_items
     endif
 
   endif
-  return s:comp_items
+  return b:comp_items
 endf
-
 
 " $self->asdfj
 setlocal omnifunc=PerlComplete
