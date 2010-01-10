@@ -11,13 +11,12 @@
 
 =script_id      2852
 
+=libpath        .
+
 =dependency
 
     libperl.vim
         | autoload/libperl.vim | http://github.com/c9s/libperl.vim/raw/master/vimlib/autoload/libperl.vim
-
-    search-window.vim
-        | autoload/swindow.vim  | http://github.com/c9s/search-window.vim/raw/master/vimlib/autoload/swindow.vim
 
 =script
 
