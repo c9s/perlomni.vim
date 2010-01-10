@@ -28,7 +28,7 @@ endf
 
 
 
-let g:p5functions = ["abs", "accept", "alarm", "atan2", "bind", "binmode", "bless", "break",
+let g:p5bfunctions = ["abs", "accept", "alarm", "atan2", "bind", "binmode", "bless", "break",
  \ "caller", "chdir", "chmod", "chomp", "chop", "chown", "chr", "chroot",
  \ "close", "closedir", "connect", "continue", "cos", "crypt", "dbmclose",
  \ "dbmopen", "defined", "delete", "die", "do", "dump", "each", "endgrent",
@@ -61,14 +61,7 @@ let g:p5functions = ["abs", "accept", "alarm", "atan2", "bind", "binmode", "bles
 
 " complete perl built-in functions
 fun! s:CompleteBFunctions(base)
-  for f in g:p5bfunctions
-    let idx = stridx(f,' ')
-    let f = strpart( f,0,idx )
-    if f =~ '^'.a:base
-      "cal complete_add( { 'word' : f , 'kind': 'f' } )
-      cal add(s:comp_items, { 'word' : f , 'kind': 'f' } )
-    endif
-  endfor
+  cal extend(s:comp_items,map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }') )
 endf
 
 fun! s:GrepFileFunctions(file)
@@ -81,7 +74,6 @@ fun! s:GrepFileFunctions(file)
 endf
 
 fun! s:CompleteSelfFunctions(file,base)
-
   if ! exists('g:p5sfunctions')
     let g:p5sfunctions = {}
   endif
