@@ -105,7 +105,7 @@ endf
 
 fun! s:CompletePackageFunctions(file,base)
   " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
-  let funcs = libperl#grep_file_functions( a:file )
+  let funcs = s:GrepFileFunctions( a:file )
   cal s:FuncCompAdd( a:base , funcs )
 
   if g:plc_complete_base_class_func
