@@ -8,33 +8,20 @@ Screenshot
 
 Install
 ========
-
 perl-completion.vim comes with some depended vim scripts (libperl.vim and
 search-window.vim) and perl-completion.vim is using PPI (pure perl parser) to
 parse perl syntax to make completions.
 
-the util scripts will be installed to `~/.vim/bin/` , so please add `~/.vim/bin/`
-to your $PATH env variable.  add this to your .bashrc or .zshrc:
-
-    export PATH=~/.vim/bin/:$PATH
-
-under the perl-completion.vim directory there is a META file, which noted the
-version and dependencies.  VIM::Packager is for solving dependency problem.
-please install VIM::Packager first:
-
-    $ sudo cpan VIM::Packager
-
-and the perl code parsing stuff needs PPI:
+to install PPI:
 
     $ sudo cpan PPI
 
-then we use vim-packager script to generate Makefile:
+put the util script `utils/find_base_classes.pl` to your $PATH.
 
-    $ vim-packager build
+copy `ftplugin/perl/perlomni.vim` to your `~/.vim/ftplugin/perl/` runtime path.
 
-then install:
-
-    $ make install
+and put libperl.vim ( http://github.com/c9s/libperl.vim/raw/master/vimlib/autoload/libperl.vim )
+to your `~/.vim/autoload/`.
 
 to enable perl-completion.vim omni completion, you have to enable your filetype
 plugin on. pre-append those settings to your `.vimrc`:
@@ -43,33 +30,7 @@ plugin on. pre-append those settings to your `.vimrc`:
     filetype plugin on
     filetype indent on
 
-
 Usage
 =====
 
  C-x C-o to emit omnicompletion.
-
-Options
-==========
-
-complete builtin functions by default
-
-    let g:def_perl_comp_bfunction = 1
-
-complete package names by default
-
-    let g:def_perl_comp_packagen  = 1
-
-Uninstall
-=========
-
-    $ make uninstall
-
-Dev
-===
-
-    $ make link
-
-
-
-

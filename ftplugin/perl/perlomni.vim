@@ -43,6 +43,37 @@ let g:p5bfunctions = ["abs", "accept", "alarm", "atan2", "bind", "binmode", "ble
  \ "unpack", "unshift", "untie", "use", "utime", "values", "vec", "wait",
  \ "waitpid", "wantarray", "warn", "write", "y"]
 
+fun! s:FindBaseClasses(file)
+  let script = 'find_base_classes.pl'
+  if ! executable( script_path )
+    echoerr 'can not execute ' . script
+    return [ ]
+  endif
+  let out = system( script . ' ' . a:file  )
+  if v:shell_error
+    echoerr 'shell error:' . v:shell_error
+    echoerr 'syntax error can not parse file:' . a:file 
+    return []
+  endif
+  let classes = [ ]
+  for l in split(out,"\n") 
+    let [class,refer,path] = split(l,' ',1)  " 1 for keepempty
+    call add(classes,[class,refer,path])
+  endfor
+  return classes
+endf
+
+fun! s:parseBaseClassFunction(filepath)
+  let base_classes = s:FindBaseClasses( a:filepath ) 
+  let result = [ ]
+  for [class,class_refer,path] in base_classes
+    let class_comp = { 'class': class , 'refer': class_refer , 'functions': [ ] }
+    let class_comp.functions = s:GrepFileFunctions( path )
+    call add( result , class_comp )
+  endfor
+  return result
+endf
+
 " complete perl built-in functions
 fun! s:CompleteBFunctions(base)
   cal extend(b:comp_items,map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }') )
@@ -70,8 +101,7 @@ fun! s:CompleteSelfFunctions(file,base)
   cal s:FuncCompAdd( a:base , subs )
 
   " find base class functions here
-  "  why there is no such complete_add function takes list ? hate;
-  let bases = libperl#parse_base_class_functions( a:file )
+  let bases = s:parseBaseClassFunction( a:file )
   for b in bases
     cal s:ClassCompAdd(a:base,b)
   endfor
@@ -81,7 +111,7 @@ fun! s:CompletePackageFunctions(file,base)
   " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
   let funcs = s:GrepFileFunctions( a:file )
   cal s:FuncCompAdd( a:base , funcs )
-  let bases = libperl#parse_base_class_functions( a:file )
+  let bases = s:parseBaseClassFunction( a:file )
   for b in bases
     cal s:ClassCompAdd(a:base,b)
   endfor
@@ -158,7 +188,6 @@ endf
 fun! s:FuncCompAdd(base,list)
   for f in a:list
     if f =~ '^' . a:base
-      " cal complete_add( { 'word' : f , 'kind': 'f' } )
       cal add( b:comp_items, { 'word' : f , 'kind': 'f' } )
     endif
   endfor
@@ -167,7 +196,6 @@ endf
 fun! s:PackageCompAdd(base,modules)
   for m in a:modules
     if m =~ '^'. a:base
-      "cal complete_add({ 'word': m , 'kind': 't' } )
       cal add(b:comp_items,{ 'word': m , 'kind': 't' } )
     endif
   endfor
@@ -176,7 +204,6 @@ endf
 fun! s:ClassCompAdd(base,b)
   for f in a:b.functions
     if f =~ '^'.a:base
-      "cal complete_add({ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
       cal add(b:comp_items,{ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
     endif
   endfor
@@ -264,8 +291,6 @@ fun! PerlComplete(findstart, base)
       cal s:ClearCompType()
       cal add(b:comp_items,'strict')
       cal add(b:comp_items,'warnings')
-      "cal complete_add('strict')
-      "cal complete_add('warnings')
       cal s:CompletePackageName( a:base )
       return b:comp_items
     endif
