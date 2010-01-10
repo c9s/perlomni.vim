@@ -2,7 +2,7 @@
 " Plugin:  perl-completion.vim
 " Author:  Cornelius
 " Email:   cornelius.howl@gmail.com 
-" Version: 1.74
+" Version: 1.75
 
 fun! s:FindVarPackageName(var)
   for l in b:file
