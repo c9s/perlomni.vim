@@ -2,7 +2,7 @@
 " Plugin:  perl-completion.vim
 " Author:  Cornelius
 " Email:   cornelius.howl@gmail.com 
-" Version: 1.7
+" Version: 1.71
 
 
 " Options:
