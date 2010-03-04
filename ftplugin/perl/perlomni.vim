@@ -45,7 +45,7 @@ let g:p5bfunctions = ["abs", "accept", "alarm", "atan2", "bind", "binmode", "ble
 
 fun! s:FindBaseClasses(file)
   let script = 'find_base_classes.pl'
-  if ! executable( script_path )
+  if ! executable( script )
     echoerr 'can not execute ' . script
     return [ ]
   endif
