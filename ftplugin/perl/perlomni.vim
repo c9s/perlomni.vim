@@ -309,7 +309,6 @@ fun! PerlComplete2(findstart, base)
     let line = getline('.')
     let lnum = line('.')
     let start = col('.') - 1
-
     if a:findstart
         let b:comps = [ ]
         "let s_pos = s:FindSpace(start,lnum,line)
@@ -451,19 +450,81 @@ fun! s:CompClassFunction(base,context)
     let funclist = s:scanFunctionFromClass( class )
     return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
+
+fun! s:CompObjectMethod(base,context)
+    let objvarname = substitute(a:context,'->$','','')
+    if ! has_key(b:objvarMapping,objvarname)
+
+        " find a small scope
+        let minnr = line('.') - 10
+        let minnr = minnr < 1 ? 1 : minnr
+        let lines = getline( minnr , line('.') )
+        cal s:scanObjectVariableLines(lines)
+        " cal s:scanObjectVariableFile()
+    endif
+
+    let funclist = [ ]
+    if has_key(b:objvarMapping,objvarname)
+        let classes = b:objvarMapping[ objvarname ]
+        for class in classes
+            cal extend(funclist,s:scanFunctionFromClass( class ))
+        endfor
+    endif
+    return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+endf
+" }}}
+
+" SCOPE FUNCTIONS {{{
+" XXX:
+fun! s:getSubScopeLines(nr)
+    let curline = getline(a:nr)
+endf
 " }}}
 
 " SCAN FUNCTIONS {{{
+fun! s:scanObjectVariableLines(lines)
+    let buffile = tempname()
+    cal writefile(a:lines,buffile)
+    let varlist = split(system('grep-objvar.pl ' . buffile . ' '),"\n") 
+    let b:objvarMapping = { }
+    for item in varlist
+        let [varname,classname] = split(item)
+        if exists('b:objvarMapping[varname]')
+            cal add( b:objvarMapping[ varname ] , classname )
+        else
+            let b:objvarMapping[ varname ] = [ classname ]
+        endif
+    endfor
+    return b:objvarMapping
+endf
+" echo s:scanObjectVariableLines([])
+
+fun! s:scanObjectVariableFile(file)
+    let list = split(system('grep-objvar.pl ' . a:file . ' '),"\n") 
+    let b:objvarMapping = { }
+    for item in list
+        let [varname,classname] = split(item)
+        if exists('b:objvarMapping[varname]')
+            cal add( b:objvarMapping[ varname ] , classname )
+        else
+            let b:objvarMapping[ varname ] = [ classname ]
+        endif
+    endfor
+    return b:objvarMapping
+endf
+" echo s:scanObjectVariableFile( expand('~/git/bps/jifty-dbi/lib/Jifty/DBI/Collection.pm') )
+
+
 fun! s:scanVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''\$(\w+)'' '),"\n") 
+    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''\$(\w+)'' | sort | uniq '),"\n") 
 endf
 
 fun! s:scanFunctionFromList(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' '),"\n")
+    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' | sort | uniq '),"\n")
 endf
 
 fun! s:scanFunctionFromClass(class)
@@ -482,7 +543,7 @@ fun! s:scanFunctionFromClass(class)
     if strlen(classfile) == 0
         return [ ]
     endif
-    return split(system('~/bin/grep-pattern.pl ' . classfile . ' ''^\s*sub\s+(\w+)'' '),"\n")
+    return split(system('~/bin/grep-pattern.pl ' . classfile . ' ''^\s*sub\s+(\w+)'' | sort | uniq '),"\n")
 endf
 " echo s:scanFunctionFromClass('Jifty::DBI::Record')
 
@@ -500,10 +561,11 @@ cal s:addRule( { 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward':
 
 
 " Core Completion Rules
-cal s:addRule( { 'context': '\s*\$$'         , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
-cal s:addRule( { 'context': '\(->\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
-cal s:addRule( { 'context': '\$self->$'    , 'backward': '\<\w\+$' , 'comp': function('s:CompBufferFunction') })
-cal s:addRule( { 'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '[a-zA-Z]*$' , 'comp': function('s:CompClassFunction') })
+cal s:addRule({'context': '\s*\$$'     , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
+cal s:addRule({'context': '\(->\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
+cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
+cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
+cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
 
 setlocal omnifunc=PerlComplete2
 
@@ -524,6 +586,16 @@ sub foo2 { }
 $self->
 
 
+" smart object method completion
+my $var = new Jifty;
+$var->
+
+
+" smart object method completion 2
+my $var = Jifty::DBI->new;
+$var->handle
+
+
 " complete variable
 $var1 $var2 $var3 $var_test $var__adfasdf
 $var__adfasdf
@@ -533,7 +605,7 @@ $var__adfasdf
 
 has url => (
     metaclass => 'Labeled',
-    is        => 'ro',
+    is        => 'wo',
     isa       => 'HashRef',
     label     => "The site's URL",
 );
