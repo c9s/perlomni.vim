@@ -236,7 +236,7 @@ fun! PerlComplete2(findstart, base)
         for rule in s:rules
             let match = matchstr( b:lcontext , rule.backward )
             if strlen(match) > 0
-                let bwidx   = stridx( b:lcontext , match )
+                let bwidx   = strridx( b:lcontext , match )
             else
                 " if backward regexp matched is empty, check if context regexp
                 " is matched ? if yes, set bwidx to length, if not , set to -1
@@ -262,10 +262,24 @@ fun! PerlComplete2(findstart, base)
             let lefttext = strpart(b:lcontext,0,bwidx)
             let basetext = strpart(b:lcontext,bwidx)
 
-"             echo string(rule.comp) . ' regexp: "' . rule.context . '" ' . "lcontext:'" .lefttext . "'" .  " basetext:'" .basetext . "'"
-"             sleep 3
+
+            " echo string(rule.comp) . ' regexp: "' . rule.context . '" ' . "lcontext:'" .lefttext . "'" .  " basetext:'" .basetext . "'"
+            " sleep 3
             if ( has_key( rule ,'head') && b:paragraph_head =~ rule.head && lefttext =~ rule.context ) ||
                     \ ( ! has_key(rule,'head') && lefttext =~ rule.context  )
+
+"             echo 'function:' . string(rule.comp)
+"             sleep 1
+"             echo 'lefttext:' . lefttext
+"             sleep 1
+"             echo 'regexp:' . rule.context
+"             sleep 1
+"             echo 'basetext:' . basetext
+"             sleep 1
+"             if lefttext =~ rule.context
+"                 echo 'Match!'
+"                 sleep 1
+"             endif
 
                 cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
                 if has_key(rule,'only') && rule.only == 1
@@ -337,6 +351,8 @@ fun! s:CompFunction(base,context)
     " return map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }')
     " return filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' )
     " return s:RegExpFilter( g:p5bfunctions , a:base )
+    echo 'base:' . a:base
+    sleep 1
     return s:StringFilter(g:p5bfunctions,a:base)
 endf
 
@@ -460,13 +476,12 @@ endf
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
-
 cal s:addRule( { 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
 
 
 " Core Completion Rules
-cal s:addRule({'context': '\s*\$$'     , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
-cal s:addRule({'context': '\(->\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
+cal s:addRule({'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
+cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
 cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
@@ -480,7 +495,7 @@ finish
 Jifty::DBI::Record->
 
 " complete built-in function
-seekdir
+seekdir see
 
 
 " complete current object methods
@@ -503,7 +518,7 @@ $var->
 
 " complete variable
 $var1 $var2 $var3 $var_test $var__adfasdf
-$var__adfasdf
+$var__adfasd  $var1 
 
 
 " moose complete
