@@ -294,10 +294,10 @@ endf
 
 fun! s:parseParagraphHead(fromLine)
     let lnum = a:fromLine
-    let b:paragraph_head = ""
-    for nr in range(lnum,lnum-10,-1)
+    let b:paragraph_head = getline(lnum)
+    for nr in range(lnum+1,lnum-10,-1)
         let line = getline(nr)
-        if line =~ '^\s*$'
+        if line =~ '^\s*$' || line =~ '^\s*#'
             break
         endif
         let b:paragraph_head = line
@@ -418,6 +418,11 @@ fun! s:CompMooseAttribute(base,context)
                 \ 'refresh_with' , 'required' ]
     return s:StringFilter(values,a:base)
 endf
+
+fun! s:CompMooseRoleAttr(base,context)
+    let attrs = [ 'alias', 'excludes' ]
+    return s:StringFilter(attrs,a:base)
+endf
 " }}}
 
 " PERL CORE OMNI COMPLETION {{{
@@ -483,11 +488,18 @@ endf
 
 " }}}
 
+
 " rules have head should be first matched , because of we get first backward position.
+"
+" Moose Completion Rules
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
 
+cal s:addRule( { 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
+
+
+" Core Completion Rules
 cal s:addRule( { 'context': '\s*\$$'         , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
 cal s:addRule( { 'context': '\(->\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
 cal s:addRule( { 'context': '\$self->$'    , 'backward': '\<\w\+$' , 'comp': function('s:CompBufferFunction') })
@@ -498,17 +510,17 @@ setlocal omnifunc=PerlComplete2
 finish
 
 " complete class methods
-Jifty::DBI::Record->_columns_hashref
+Jifty::DBI::Record->
 
 " complete built-in function
 seekdir
 
 
-sub testtest {
-
-}
-
 " complete current object methods
+sub testtest { }
+sub foo1 { }
+sub foo2 { }
+
 $self->
 
 
@@ -525,4 +537,15 @@ has url => (
     isa       => 'HashRef',
     label     => "The site's URL",
 );
+
+" role
+
+with 'Restartable' => {
+    -alias => {
+        stop  => '_stop',
+        start => '_start'
+    },
+    -excludes => [ 'stop', 'start' ],
+};
+
 
