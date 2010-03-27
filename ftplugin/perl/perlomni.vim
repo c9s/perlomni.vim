@@ -4,7 +4,7 @@
 " Author:  Cornelius
 " Email:   cornelius.howl@gmail.com 
 " Version: 1.75
-
+let s:debug_flag = 1
 runtime 'plugin/perlomni-data.vim'
 runtime 'plugin/perlomni-util.vim'
 
@@ -193,7 +193,12 @@ fun! s:ClassCompAdd(base,b)
 endf
 
 
-
+fun! s:debug(name,var)
+    if s:debug_flag
+        echo a:name . ":" . a:var
+        sleep 1
+    endif
+endf
 
 " main completion function
 " b:context  : whole current line
@@ -204,7 +209,7 @@ endf
 fun! s:parseParagraphHead(fromLine)
     let lnum = a:fromLine
     let b:paragraph_head = getline(lnum)
-    for nr in range(lnum+1,lnum-10,-1)
+    for nr in range(lnum-1,lnum-10,-1)
         let line = getline(nr)
         if line =~ '^\s*$' || line =~ '^\s*#'
             break
@@ -262,24 +267,25 @@ fun! PerlComplete2(findstart, base)
             let lefttext = strpart(b:lcontext,0,bwidx)
             let basetext = strpart(b:lcontext,bwidx)
 
+            cal s:debug( 'function' , string(rule.comp) )
+            cal s:debug( 'head'     , b:paragraph_head )
+            cal s:debug( 'lefttext' , lefttext )
+            cal s:debug( 'regexp'   , rule.context )
+            cal s:debug( 'basetext' , basetext )
 
-            " echo string(rule.comp) . ' regexp: "' . rule.context . '" ' . "lcontext:'" .lefttext . "'" .  " basetext:'" .basetext . "'"
-            " sleep 3
-            if ( has_key( rule ,'head') && b:paragraph_head =~ rule.head && lefttext =~ rule.context ) ||
-                    \ ( ! has_key(rule,'head') && lefttext =~ rule.context  )
-
-"             echo 'function:' . string(rule.comp)
-"             sleep 1
-"             echo 'lefttext:' . lefttext
-"             sleep 1
-"             echo 'regexp:' . rule.context
-"             sleep 1
-"             echo 'basetext:' . basetext
-"             sleep 1
 "             if lefttext =~ rule.context
-"                 echo 'Match!'
+"                 echo 'Context Match!'
 "                 sleep 1
 "             endif
+"             if has_key(rule,'head') && b:paragraph_head =~ rule.head
+"                 echo 'Head Match!'
+"                 sleep 1
+"             endif
+            " echo string(rule.comp) . ' regexp: "' . rule.context . '" ' . "lcontext:'" .lefttext . "'" .  " basetext:'" .basetext . "'"
+            " sleep 3
+
+            if ( has_key( rule ,'head') && b:paragraph_head =~ rule.head && lefttext =~ rule.context ) ||
+                    \ ( ! has_key(rule,'head') && lefttext =~ rule.context  )
 
                 cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
                 if has_key(rule,'only') && rule.only == 1
