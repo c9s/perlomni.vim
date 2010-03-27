@@ -22,53 +22,67 @@ please make sure you've enable filetype plugin your `.vimrc`:
 Usage
 =====
 
- C-x C-o to emit omnicompletion.
-
+In insert mode , press C-x C-o to emit omnicompletion.
 
 Samples
 =======
 
 
-    # complete class methods
+    " SAMPLES {{{
+
+    extends 'Moose::Meta::Attribute';
+    extends 'AAC::Pvoice';
+
+    " module compeltion
+    my $obj = new B::C;
+
+
+    " complete class methods
     Jifty::DBI::Record->
 
-    # complete built-in function
-    seekdir
+    " complete built-in function
+    seekdir see
 
 
-    # complete current object methods
+    " $self completion
+    "   my $self
+    " to 
+    "   my $self = shift;
+    my $self
+
+    " complete current object methods
     sub testtest { }
     sub foo1 { }
     sub foo2 { }
 
     $self->
 
-
-    # smart object method completion
+    " smart object method completion
     my $var = new Jifty;
     $var->
 
-
-    # smart object method completion 2
+    " smart object method completion 2
     my $var = Jifty::DBI->new;
     $var->
 
+    my %hash = ( );
+    my @array = ( );
 
-    # complete variable
+    " complete variable
     $var1 $var2 $var3 $var_test $var__adfasdf
-    $var__adfasdf
+    $var__adfasd  $var1 
 
 
-    # moose complete
+    " moose complete
 
     has url => (
         metaclass => 'Labeled',
-        is        => 'wo',
-        isa       => 'HashRef',
+        is        => 'rw',
+        isa       => 'Str',
         label     => "The site's URL",
     );
 
-    # role
+    " role
 
     with 'Restartable' => {
         -alias => {
@@ -78,3 +92,4 @@ Samples
         -excludes => [ 'stop', 'start' ],
     };
 
+    " }}}
