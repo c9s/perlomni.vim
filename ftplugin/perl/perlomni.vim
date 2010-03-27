@@ -1,8 +1,14 @@
-
-" Plugin:  perl-completion.vim
+" vim:fdm=marker:
+"
+" Plugin:  perlomni.vim
 " Author:  Cornelius
 " Email:   cornelius.howl@gmail.com 
 " Version: 1.75
+
+runtime 'plugin/perlomni-data.vim'
+runtime 'plugin/perlomni-util.vim'
+
+
 
 fun! s:FindVarPackageName(var)
   for l in b:file
@@ -11,37 +17,6 @@ fun! s:FindVarPackageName(var)
     endif
   endfor
 endf
-
-let g:p5bfunctions = ["abs", "accept", "alarm", "atan2", "bind", "binmode", "bless", "break",
- \ "caller", "chdir", "chmod", "chomp", "chop", "chown", "chr", "chroot",
- \ "close", "closedir", "connect", "continue", "cos", "crypt", "dbmclose",
- \ "dbmopen", "defined", "delete", "die", "do", "dump", "each", "endgrent",
- \ "endhostent", "endnetent", "endprotoent", "endpwent", "endservent", "eof",
- \ "eval", "exec", "exists", "exit", "exp", "fcntl", "fileno", "flock", "fork",
- \ "format", "formline", "getc", "getgrent", "getgrgid", "getgrnam",
- \ "gethostbyaddr", "gethostbyname", "gethostent", "getlogin", "getnetbyaddr",
- \ "getnetbyname", "getnetent", "getpeername", "getpgrp", "getppid",
- \ "getpriority", "getprotobyname", "getprotobynumber", "getprotoent",
- \ "getpwent", "getpwnam", "getpwuid", "getservbyname", "getservbyport",
- \ "getservent", "getsockname", "getsockopt", "glob", "gmtime", "goto", "grep",
- \ "hex", "import", "index", "int", "ioctl", "join", "keys", "kill", "last",
- \ "lc", "lcfirst", "length", "link", "listen", "local", "localtime", "lock",
- \ "log", "lstat", "m", "map", "mkdir", "msgctl", "msgget", "msgrcv", "msgsnd",
- \ "my", "next", "no", "oct", "open", "opendir", "ord", "our", "pack", "package",
- \ "pipe", "pop", "pos", "print", "printf", "prototype", "push", "q", "qq", "qr",
- \ "quotemeta", "qw", "qx", "rand", "read", "readdir", "readline", "readlink",
- \ "readpipe", "recv", "redo", "ref", "rename", "require", "reset", "return",
- \ "reverse", "rewinddir", "rindex", "rmdir", "s", "say", "scalar", "seek",
- \ "seekdir", "select", "semctl", "semget", "semop", "send", "setgrent",
- \ "sethostent", "setnetent", "setpgrp", "setpriority", "setprotoent",
- \ "setpwent", "setservent", "setsockopt", "shift", "shmctl", "shmget",
- \ "shmread", "shmwrite", "shutdown", "sin", "sleep", "socket", "socketpair",
- \ "sort", "splice", "split", "sprintf", "sqrt", "srand", "stat", "state",
- \ "study", "sub", "substr", "symlink", "syscall", "sysopen", "sysread",
- \ "sysseek", "system", "syswrite", "tell", "telldir", "tie", "tied", "time",
- \ "times", "tr", "truncate", "uc", "ucfirst", "umask", "undef", "unlink",
- \ "unpack", "unshift", "untie", "use", "utime", "values", "vec", "wait",
- \ "waitpid", "wantarray", "warn", "write", "y"]
 
 fun! s:FindBaseClasses(file)
   let script = 'find_base_classes.pl'
@@ -209,6 +184,14 @@ fun! s:ClassCompAdd(base,b)
   endfor
 endf
 
+
+
+
+" main completion function
+" b:context  : whole current line
+" b:lcontext : the text before cursor position
+" b:colpos   : cursor position - 1
+" b:lines    : range of scanning
 fun! PerlComplete(findstart, base)
   let line = getline('.')
   let lnum = line('.')
@@ -313,5 +296,81 @@ fun! PerlComplete(findstart, base)
   return b:comp_items
 endf
 
-" $self->asdfj
-setlocal omnifunc=PerlComplete
+fun! PerlComplete2(findstart, base)
+  let line = getline('.')
+  let lnum = line('.')
+  let start = col('.') - 1
+
+  if a:findstart
+    let b:comps = [ ]
+    "let s_pos = s:FindSpace(start,lnum,line)
+
+    " XXX: read lines from current buffer
+    " let b:lines   = 
+    let b:context  = getline('.')
+    let b:lcontext = strpart(getline('.'),0,col('.')-1)
+    let b:colpos   = col('.') - 1
+
+    for rule in s:rules
+     " let i = search( b:lcontext , rule.backward ,'bn')
+      let match = matchstr( b:lcontext , rule.backward )
+      let bwidx   = stridx( b:lcontext , match )
+      if bwidx != -1
+        let lefttext = strpart(b:lcontext,0,bwidx)
+        let basetext = strpart(b:lcontext,bwidx)
+        "echo 'leftext:' . lefttext
+        "echo 'basetext:'. basetext
+        if lefttext =~ rule.context
+          cal extend(b:comps,call( rule.comp, [basetext] ))
+          return bwidx
+        endif
+      endif
+    endfor
+  else 
+    echo b:comps
+    return b:comps
+  endif
+endf
+
+
+let s:rules = [ ]
+fun! s:addRule(hash)
+  cal add( s:rules , a:hash )
+endf
+
+fun! g:p5cRule(hash)
+  cal s:addRule(a:hash)
+endf
+
+
+fun! s:Quote(list)
+  return map(copy(a:list), '"''".v:val."''"' )
+endf
+
+fun! s:CompMooseIs(base)
+  return s:Quote(['rw','r','w'])
+endf
+
+fun! s:CompMooseIsa(base)
+  let l:comps = s:Quote(["'Int'", "'Str'", "'HashRef'"])
+  let l:result = [ ]
+  for comp in l:comps
+    if comp =~ a:base
+      cal add(l:result,comp)
+    endif
+  endfor
+  "cal filter(l:comps, 'v:val =~ ''^'.escape(a:base,"'").'''')
+  "echo l:comps
+  "sleep 1
+  "return l:comps
+  return l:result
+endf
+
+cal s:addRule( { 'context': '\s\+is\s\+$' , 'backward': '\S\+$' , 'comp': function('s:CompMooseIs') } )
+cal s:addRule( { 'context': '\s\+isa\s\+$' , 'backward': '\S\+$' , 'comp': function('s:CompMooseIsa') } )
+
+setlocal omnifunc=PerlComplete2
+
+
+" isa 'HashRef'
+" is 'r'
