@@ -332,6 +332,10 @@ fun! s:CompMooseRoleAttr(base,context)
     let attrs = [ 'alias', 'excludes' ]
     return s:StringFilter(attrs,a:base)
 endf
+fun! s:CompMooseStatement(base,context)
+    let sts = [ 'extends' , 'after' , 'before', 'has' , 'requires' , 'with' ]
+    return s:StringFilter(sts,a:base)
+endf
 " }}}
 " PERL CORE OMNI COMPLETION {{{
 fun! s:CompFunction(base,context)
@@ -385,14 +389,24 @@ fun! s:CompObjectMethod(base,context)
 endf
 
 fun! s:CompClassName(base,context)
-    let sourcefile = CPANSourceLists()
-    let classnames = CPANParseSourceList( sourcefile )
-
+    if exists('g:cpan_mod_cache')
+        let classnames = g:cpan_mod_cache
+    else
+        let sourcefile = CPANSourceLists()
+        let classnames = CPANParseSourceList( sourcefile )
+        let g:cpan_mod_cache = classnames
+    endif
+    let result = filter(copy(classnames),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    if len(result) > 200 
+        return remove(result,0,200)
+    else
+        return result
+    endif
 endf
 
 " }}}
 " PERL CLASS LIST UTILS {{{
-
+" CPANParseSourceList {{{
 fun! CPANParseSourceList(file)
   if ! exists('g:cpan_mod_cachef')
     let g:cpan_mod_cachef = expand('~/.vim-cpan-module-cache')
@@ -408,7 +422,8 @@ fun! CPANParseSourceList(file)
   endif
   return readfile( g:cpan_mod_cachef )
 endf
-
+" }}}
+" CPANSourceLists {{{
 " XXX: copied from cpan.vim plugin , should be reused.
 " fetch source list from remote
 fun! CPANSourceLists()
@@ -456,8 +471,7 @@ endf
 " let sourcefile = CPANSourceLists()
 " let classnames = CPANParseSourceList( sourcefile )
 " echo remove(classnames,10)
-
-
+" }}}
 " }}}
 " SCOPE FUNCTIONS {{{
 " XXX:
@@ -536,24 +550,41 @@ endf
 " rules have head should be first matched , because of we get first backward position.
 "
 " Moose Completion Rules
-cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
-cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
-cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
-cal s:addRule( { 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
+cal s:addRule({ 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
+
+cal s:addRule({ 'context': '^\s*$', 'backward': '\w\+$', 'comp':function('s:CompMooseStatement')})
 
 " Core Completion Rules
+
+" class name completion
+cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
+cal s:addRule({'only':1, 'context': '^extends\s\+''$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
+cal s:addRule({'only':1, 'context': '^use \(base\|parent\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
+
+" variable completion
 cal s:addRule({'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
+
+" function completion
 cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
 cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
-cal s:addRule({'context': '\<new\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]+', 'comp': function('s:CompClassName') } )
 
 " }}}
 setlocal omnifunc=PerlComplete2
 
 finish
 " SAMPLES {{{
+
+extends 'Moose::Meta::Attribute';
+extends 'AAC::Pvoice';
+
+" module compeltion
+my $obj = new B::C;
+
 
 " complete class methods
 Jifty::DBI::Record->
@@ -583,6 +614,9 @@ $var->
 " complete variable
 $var1 $var2 $var3 $var_test $var__adfasdf
 $var__adfasd  $var1 
+
+
+J
 
 
 " moose complete
