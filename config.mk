@@ -1,0 +1,3 @@
+
+
+DIRS=ftplugin plugin bin

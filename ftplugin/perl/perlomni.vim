@@ -9,7 +9,7 @@ runtime 'plugin/perlomni-data.vim'
 runtime 'plugin/perlomni-util.vim'
 
 if ! executable('grep-objvar.pl')
-            \ && ! executable('grep-varnames.pl')
+            \ && ! executable('grep-pattern.pl')
     echo "Please add ~/.vim/bin to your PATH env variable."
     echo "And make them executable."
     echo "For example:"
@@ -524,6 +524,5 @@ with 'Restartable' => {
     },
     -excludes => [ 'stop', 'start' ],
 };
-
 
 " }}}
