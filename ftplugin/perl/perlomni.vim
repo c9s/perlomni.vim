@@ -326,13 +326,15 @@ fun! PerlComplete2(findstart, base)
         let first_bwidx = -1
 
         for rule in s:rules
-            " let i = search( b:lcontext , rule.backward ,'bn')
-            let match = matchstr( b:lcontext , rule.backward )
+"             echo "Scanning " . string(rule.comp) . "..."
+"             sleep 100ms
 
+            let match = matchstr( b:lcontext , rule.backward )
             if strlen(match) > 0
                 let bwidx   = stridx( b:lcontext , match )
             else
-                let bwidx   = strlen(b:lcontext)
+                " let bwidx   = strlen(b:lcontext)
+                let bwidx = -1
             endif
 
             " see if there is first matched index
@@ -343,6 +345,9 @@ fun! PerlComplete2(findstart, base)
             if bwidx == -1
                 continue
             endif
+
+            echo string(rule.comp)  . " matched!"
+            sleep 500ms
 
             " lefttext: context matched text
             " basetext: backward matched text
@@ -355,16 +360,13 @@ fun! PerlComplete2(findstart, base)
             "         echo "'" .basetext . "'"
             "         sleep 1
             if lefttext =~ rule.context
-
                 cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
 
                 " save first backward index
                 if first_bwidx == -1
                     let first_bwidx = bwidx
                 endif
-
             endif
-
         endfor
         return first_bwidx
     else 
@@ -446,24 +448,30 @@ fun! s:scanFunction(lines)
 endf
 " }}}
 
+cal s:addRule( { 'context': '\s*$'         , 'backward': '\$\w\+$' , 'comp': function('s:CompVariable') })
+cal s:addRule( { 'context': '\s*$'         , 'backward': '\<[a-z]*$' , 'comp': function('s:CompFunction') })
+cal s:addRule( { 'context': '\$self->$'    , 'backward': '\<[a-z]*$' , 'comp': function('s:CompBufferFunction') })
+
+cal s:addRule( { 'context': '[a-zA-Z0-9:]*->$'    , 'backward': '[a-z]*$' , 'comp': function('s:CompBufferFunction') })
 cal s:addRule( { 'context': '\s\+is\s\+=>\s\+$'  , 'backward': '\S*$'    , 'comp': function('s:CompMooseIs') } )
 cal s:addRule( { 'context': '\s\+isa\s\+=>\s\+$' , 'backward': '\S*$'    , 'comp': function('s:CompMooseIsa') } )
-cal s:addRule( { 'context': '\s*$'         , 'backward': '[a-z]*$' , 'comp': function('s:CompFunction') })
-cal s:addRule( { 'context': '\$self->$'    , 'backward': '[a-z]*$' , 'comp': function('s:CompBufferFunction') })
-cal s:addRule( { 'context': '[a-zA-Z0-9:]*->$'    , 'backward': '[a-z]*$' , 'comp': function('s:CompBufferFunction') })
-cal s:addRule( { 'context': '\s$'          , 'backward': '\$\w\+$' , 'comp': function('s:CompVariable') })
 
 setlocal omnifunc=PerlComplete2
 
-" isa 'HashRef'
-" is 'rw'
-" $var1 , $var2 
-" $var3 , $var
 finish
-
+" Test Code
 has url => (
     metaclass => 'Labeled',
     is        => 'rw',
     isa       => 'ArrayRef',
     label     => "The site's URL",
 );
+
+Class->method
+$self->
+$var1 $var2 $var3 $var_test $var__adfasdf
+
+$var3
+seekdir
+
+
