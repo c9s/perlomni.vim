@@ -342,8 +342,6 @@ fun! s:CompFunction(base,context)
     " return map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }')
     " return filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' )
     " return s:RegExpFilter( g:p5bfunctions , a:base )
-    echo 'base:' . a:base
-    sleep 1
     return s:StringFilter(g:p5bfunctions,a:base)
 endf
 
@@ -397,8 +395,8 @@ fun! s:CompClassName(base,context)
         let g:cpan_mod_cache = classnames
     endif
     let result = filter(copy(classnames),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-    if len(result) > 200 
-        return remove(result,0,200)
+    if len(result) > g:perlomni_max_class_length 
+        return remove(result,0, g:perlomni_max_class_length)
     else
         return result
     endif
@@ -576,6 +574,16 @@ cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp'
 " }}}
 setlocal omnifunc=PerlComplete2
 
+
+fun! s:defopt(name,value)
+    if !exists('g:{a:name}')
+        let g:{a:name} = a:value
+    endif
+endf
+" Configurations
+cal s:defopt('perlomni_max_class_length',200)
+
+
 finish
 " SAMPLES {{{
 
@@ -600,11 +608,9 @@ sub foo2 { }
 
 $self->
 
-
 " smart object method completion
 my $var = new Jifty;
 $var->
-
 
 " smart object method completion 2
 my $var = Jifty::DBI->new;
@@ -616,15 +622,12 @@ $var1 $var2 $var3 $var_test $var__adfasdf
 $var__adfasd  $var1 
 
 
-J
-
-
 " moose complete
 
 has url => (
     metaclass => 'Labeled',
-    is        => 'wo',
-    isa       => 'HashRef',
+    is        => 'rw',
+    isa       => 'Str',
     label     => "The site's URL",
 );
 
