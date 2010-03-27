@@ -50,7 +50,6 @@ fun! s:FindBaseClasses(file)
     endfor
     return classes
 endf
-
 fun! s:parseBaseClassFunction(filepath)
     let base_classes = s:FindBaseClasses( a:filepath ) 
     let result = [ ]
@@ -60,109 +59,6 @@ fun! s:parseBaseClassFunction(filepath)
         call add( result , class_comp )
     endfor
     return result
-endf
-
-fun! s:GrepFileFunctions(file)
-    let lines = filter(readfile(a:file),'v:val =~ ''^\s*sub\s''')
-    let funcs = []
-    for l in lines
-        cal add(funcs,matchstr(l,'\(^\s*sub\s\+\)\@<=\w\+'))
-    endfor
-    return funcs
-endf
-
-fun! s:CompletePackageFunctions(file,base)
-    " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
-    let funcs = s:GrepFileFunctions( a:file )
-    cal s:FuncCompAdd( a:base , funcs )
-    let bases = s:parseBaseClassFunction( a:file )
-    for b in bases
-        cal s:ClassCompAdd(a:base,b)
-    endfor
-endf
-
-fun! s:CompletePackageName(base)
-    let ms = libperl#get_cpan_installed_module_list(0)
-    cal s:PackageCompAdd( a:base , ms )
-endf
-
-fun! s:GetCompType()
-    return s:found_types
-endf
-
-fun! s:AddCompType(type)
-    cal add(s:found_types,a:type) 
-endf
-
-" which is a list
-fun! s:SetCompType(type)
-    let s:found_types = a:type
-endf
-
-fun! s:HasCompType(type)
-    for t in s:found_types 
-        if t == a:type
-            return 1
-        endif
-    endfor
-    return 0
-endf
-
-fun! s:ClearCompType()
-    let s:found_types = [ ]
-endf
-
-
-" ====================== Complete Patterns
-fun! s:FindVariableCompStart()
-
-endf
-
-" Package::O
-fun! s:FindPackageCompStart()
-    return searchpos('[A-Z]\w\+\(::\w\+\)*','bnc')
-endf
-
-fun! s:FindMethodCompReferStart()
-    return searchpos( '\S\+\(->\w*\)\@='  , 'bnc' )
-endf
-
-" $self->somet..
-fun! s:FindMethodCompStart()
-    return searchpos('\(->\)\@<=\w*','bnc')
-endf
-
-fun! s:CompFound(pos,over)
-    " if searchpos returns [0,0] (pattern not found)
-    if a:pos[1] > a:over[1] && a:pos[0] == a:over[0]
-        return 1
-    else
-        return 0
-    endif
-endf
-
-fun! s:FindSpace(col,row,line)
-    let s = a:col
-    while s > 0 && a:line[s - 1] =~ '\S'
-        let s -= 1
-    endwhile
-    return [a:row,s]
-endf
-
-fun! s:FuncCompAdd(base,list)
-    for f in a:list
-        if f =~ '^' . a:base
-            cal add( b:comp_items, { 'word' : f , 'kind': 'f' } )
-        endif
-    endfor
-endf
-
-fun! s:PackageCompAdd(base,modules)
-    for m in a:modules
-        if m =~ '^'. a:base
-            cal add(b:comp_items,{ 'word': m , 'kind': 't' } )
-        endif
-    endfor
 endf
 
 fun! s:ClassCompAdd(base,b)
@@ -178,6 +74,12 @@ fun! s:debug(name,var)
     if s:debug_flag
         echo a:name . ":" . a:var
         sleep 1
+    endif
+endf
+
+fun! s:defopt(name,value)
+    if !exists('g:{a:name}')
+        let g:{a:name} = a:value
     endif
 endf
 
@@ -575,11 +477,6 @@ cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp'
 setlocal omnifunc=PerlComplete2
 
 
-fun! s:defopt(name,value)
-    if !exists('g:{a:name}')
-        let g:{a:name} = a:value
-    endif
-endf
 " Configurations
 cal s:defopt('perlomni_max_class_length',200)
 
