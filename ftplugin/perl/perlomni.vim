@@ -70,6 +70,15 @@ fun! s:ClassCompAdd(base,b)
 endf
 
 
+" ===================================
+fun! s:addRule(hash)
+    cal add( s:rules , a:hash )
+endf
+
+fun! g:p5cRule(hash)
+    cal s:addRule(a:hash)
+endf
+
 fun! s:debug(name,var)
     if s:debug_flag
         echo a:name . ":" . a:var
@@ -188,13 +197,6 @@ fun! PerlComplete2(findstart, base)
 endf
 
 let s:rules = [ ]
-fun! s:addRule(hash)
-    cal add( s:rules , a:hash )
-endf
-
-fun! g:p5cRule(hash)
-    cal s:addRule(a:hash)
-endf
 
 " Util Functions {{{
 fun! s:Quote(list)
@@ -210,7 +212,6 @@ fun! s:StringFilter(list,string)
     return filter( copy(a:list),"stridx(v:val,'".a:string."') == 0 && v:val != '".a:string."'" )
 endf
 " }}}
-
 " SIMPLE MOOSE COMPLETION {{{
 fun! s:CompMooseIs(base,context)
     return s:Quote(['rw','ro','wo'])
@@ -449,15 +450,15 @@ endf
 " RULES {{{
 " rules have head should be first matched , because of we get first backward position.
 "
-" Moose Completion Rules
+" Moose Completion Rules {{{
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
 cal s:addRule({ 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
 
 cal s:addRule({ 'context': '^\s*$', 'backward': '\w\+$', 'comp':function('s:CompMooseStatement')})
-
-" Core Completion Rules
+" }}}
+" Core Completion Rules {{{
 
 " class name completion
 cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
@@ -472,10 +473,10 @@ cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': fun
 cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
+" }}}
 
 " }}}
 setlocal omnifunc=PerlComplete2
-
 
 " Configurations
 cal s:defopt('perlomni_max_class_length',200)
