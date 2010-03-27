@@ -326,9 +326,6 @@ fun! PerlComplete2(findstart, base)
         let first_bwidx = -1
 
         for rule in s:rules
-"             echo "Scanning " . string(rule.comp) . "..."
-"             sleep 100ms
-
             let match = matchstr( b:lcontext , rule.backward )
             if strlen(match) > 0
                 let bwidx   = stridx( b:lcontext , match )
@@ -357,21 +354,20 @@ fun! PerlComplete2(findstart, base)
             let lefttext = strpart(b:lcontext,0,bwidx)
             let basetext = strpart(b:lcontext,bwidx)
 
-            echo string(rule.comp) . ' regexp: "' . rule.context . '" ' . "lcontext:'" .lefttext . "'" .  " basetext:'" .basetext . "'"
-            "sleep 3
-
-            if lefttext =~ rule.context
-
-                echo 'calling ' . string(rule.comp)
-                sleep 500ms
+"             echo string(rule.comp) . ' regexp: "' . rule.context . '" ' . "lcontext:'" .lefttext . "'" .  " basetext:'" .basetext . "'"
+"             sleep 3
+            if ( has_key( rule ,'head') && b:paragraph_head =~ rule.head && lefttext =~ rule.context ) ||
+                    \ ( ! has_key(rule,'head') && lefttext =~ rule.context  )
 
                 cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
+                if has_key(rule,'only') && rule.only == 1
+                    return bwidx
+                endif
 
                 " save first backward index
                 if first_bwidx == -1
                     let first_bwidx = bwidx
                 endif
-
             endif
         endfor
         return first_bwidx
@@ -479,13 +475,17 @@ endf
 
 " }}}
 
+
+" rules have head should be first matched , because of we get first backward position.
+cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
+cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
+cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
+
 cal s:addRule( { 'context': '\s*\$$'         , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
 cal s:addRule( { 'context': '\(->\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
 cal s:addRule( { 'context': '\$self->$'    , 'backward': '\<\w\+$' , 'comp': function('s:CompBufferFunction') })
 cal s:addRule( { 'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '[a-zA-Z]*$' , 'comp': function('s:CompClassFunction') })
 
-cal s:addRule( { 'context': '\s\+is\s\+=>\s\+$'  , 'backward': '\S*$'    , 'comp': function('s:CompMooseIs') } )
-cal s:addRule( { 'context': '\s\+isa\s\+=>\s\+$' , 'backward': '\S*$'    , 'comp': function('s:CompMooseIsa') } )
 
 setlocal omnifunc=PerlComplete2
 
@@ -495,7 +495,7 @@ finish
 Jifty::DBI::Record->_columns_hashref
 
 " complete built-in function
- seekdir
+seekdir
 
 " complete current object methods
 $self->
@@ -507,9 +507,13 @@ $var__adfasdf
 
 
 " moose complete
+
 has url => (
     metaclass => 'Labeled',
-    is        => 'rw',
-    isa       => 'ArrayRef',
+    is        => 'ro',
+    isa       => 'HashRef',
     label     => "The site's URL",
 );
+
+
+
