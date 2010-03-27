@@ -261,7 +261,7 @@ fun! s:CompMooseRoleAttr(base,context)
     return s:StringFilter(attrs,a:base)
 endf
 fun! s:CompMooseStatement(base,context)
-    let sts = [ 'extends' , 'after' , 'before', 'has' , 'requires' , 'with' ]
+    let sts = [ 'extends' , 'after' , 'before', 'has' , 'requires' , 'with' , 'override' ]
     return s:StringFilter(sts,a:base)
 endf
 " }}}
