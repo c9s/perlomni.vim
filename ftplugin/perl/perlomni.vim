@@ -291,6 +291,20 @@ fun! PerlComplete(findstart, base)
     return b:comp_items
 endf
 
+
+fun! s:parseParagraphHead(fromLine)
+    let lnum = a:fromLine
+    let b:paragraph_head = ""
+    for nr in range(lnum,lnum-10,-1)
+        let line = getline(nr)
+        if line =~ '^\s*$'
+            break
+        endif
+        let b:paragraph_head = line
+    endfor
+    return b:paragraph_head
+endf
+
 fun! PerlComplete2(findstart, base)
     let line = getline('.')
     let lnum = line('.')
@@ -306,6 +320,8 @@ fun! PerlComplete2(findstart, base)
         let b:lcontext = strpart(getline('.'),0,col('.')-1)
         let b:colpos   = col('.') - 1
 
+        " let b:pcontext
+        let b:paragraph_head = s:parseParagraphHead(lnum)
 
         let first_bwidx = -1
 
@@ -340,7 +356,7 @@ fun! PerlComplete2(findstart, base)
             "         sleep 1
             if lefttext =~ rule.context
 
-                cal extend(b:comps,call( rule.comp, [basetext] ))
+                cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
 
                 " save first backward index
                 if first_bwidx == -1
@@ -356,7 +372,6 @@ fun! PerlComplete2(findstart, base)
     endif
 endf
 
-
 let s:rules = [ ]
 fun! s:addRule(hash)
     cal add( s:rules , a:hash )
@@ -366,6 +381,7 @@ fun! g:p5cRule(hash)
     cal s:addRule(a:hash)
 endf
 
+" Util Functions {{{
 fun! s:Quote(list)
     return map(copy(a:list), '"''".v:val."''"' )
 endf
@@ -375,33 +391,45 @@ fun! s:RegExpFilter(list,pattern)
     return filter(copy(a:list),"v:val =~ '^".pattern."'")
 endf
 
-fun! s:CompMooseIs(base)
-    return s:Quote(['rw','r','w'])
+fun! s:StringFilter(list,string)
+    return filter( copy(a:list),"stridx(v:val,'".a:string."') == 0 && v:val != '".a:string."'" )
+endf
+" }}}
+
+" Simple Moose Completion {{{
+fun! s:CompMooseIs(base,context)
+    return s:Quote(['rw','ro','wo'])
 endf
 
-fun! s:CompMooseIsa(base)
-    let l:comps = s:Quote(["Int", "Str", "HashRef"])
+fun! s:CompMooseIsa(base,context)
+    let l:comps = s:Quote(["Int", "Str", "HashRef", "HashRef[","Num",'ArrayRef'])
     return s:RegExpFilter( l:comps, a:base  )
 endf
+" }}}
 
 " PERL CORE OMNI COMPLETION {{{
-fun! s:CompFunction(base)
+fun! s:CompFunction(base,context)
     " return map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }')
     " return filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' )
-    return s:RegExpFilter( g:p5bfunctions , a:base )
+    " return s:RegExpFilter( g:p5bfunctions , a:base )
+    return s:StringFilter(g:p5bfunctions,a:base)
 endf
 
-fun! s:CompVariable(base)
+fun! s:CompVariable(base,context)
     " scan variables in current buffer
     let lines = getline(1,'$')
     let variables = s:scanVariable(getline(1,'$'))
     return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 
-fun! s:CompBufferFunction(base)
+fun! s:CompBufferFunction(base,context)
     let lines = getline(1,'$')
     let funclist = s:scanFunction(getline(1,'$'))
     return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+endf
+
+fun! s:CompClassFunction(base,context)
+
 endf
 
 " SCAN FUNCTIONS {{{
@@ -418,11 +446,12 @@ fun! s:scanFunction(lines)
 endf
 " }}}
 
-cal s:addRule( { 'context': '\s\+is\s\+$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
-cal s:addRule( { 'context': '\s\+isa\s\+$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
-cal s:addRule( { 'context': '\s$'          , 'backward': '[a-z]*$' , 'comp': function('s:CompFunction') })
+cal s:addRule( { 'context': '\s\+is\s\+=>\s\+$'  , 'backward': '\S*$'    , 'comp': function('s:CompMooseIs') } )
+cal s:addRule( { 'context': '\s\+isa\s\+=>\s\+$' , 'backward': '\S*$'    , 'comp': function('s:CompMooseIsa') } )
+cal s:addRule( { 'context': '\s*$'         , 'backward': '[a-z]*$' , 'comp': function('s:CompFunction') })
 cal s:addRule( { 'context': '\$self->$'    , 'backward': '[a-z]*$' , 'comp': function('s:CompBufferFunction') })
-cal s:addRule( { 'context': '\s$'          , 'backward': '\$\w\+$'  , 'comp': function('s:CompVariable') })
+cal s:addRule( { 'context': '[a-zA-Z0-9:]*->$'    , 'backward': '[a-z]*$' , 'comp': function('s:CompBufferFunction') })
+cal s:addRule( { 'context': '\s$'          , 'backward': '\$\w\+$' , 'comp': function('s:CompVariable') })
 
 setlocal omnifunc=PerlComplete2
 
@@ -430,4 +459,11 @@ setlocal omnifunc=PerlComplete2
 " is 'rw'
 " $var1 , $var2 
 " $var3 , $var
+finish
 
+has url => (
+    metaclass => 'Labeled',
+    is        => 'rw',
+    isa       => 'ArrayRef',
+    label     => "The site's URL",
+);
