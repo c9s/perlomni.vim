@@ -426,7 +426,7 @@ endf
 
 fun! s:CompBufferFunction(base,context)
     let lines = getline(1,'$')
-    let funclist = s:scanFunction(getline(1,'$'))
+    let funclist = s:scanFunctionFromList(getline(1,'$'))
     return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 
@@ -441,18 +441,36 @@ fun! s:scanVariable(lines)
     return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''(\$\w+)'' '),"\n") 
 endf
 
-fun! s:scanFunction(lines)
+fun! s:scanFunctionFromList(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
     return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' '),"\n")
 endf
+
+fun! s:scanFunctionFromClass(class)
+    let paths = split(&path,',')
+    let filepath = substitute(a:class,'::','/','g') . '.pm'
+    let classfile = ''
+    for path in paths
+        if filereadable( path .'/'. filepath ) 
+            let classfile = path . '/' . filepath
+            break
+        endif
+    endfor
+    if strlen(classfile) == 0
+        return [ ]
+    endif
+    return split(system('~/bin/grep-pattern.pl ' . classfile . ' ''^\s*sub\s+(\w+)'' '),"\n")
+endf
+
+
 " }}}
 
 cal s:addRule( { 'context': '\s*$'         , 'backward': '\$\w\+$' , 'comp': function('s:CompVariable') })
 cal s:addRule( { 'context': '\s*$'         , 'backward': '\<[a-z]*$' , 'comp': function('s:CompFunction') })
 cal s:addRule( { 'context': '\$self->$'    , 'backward': '\<[a-z]*$' , 'comp': function('s:CompBufferFunction') })
+cal s:addRule( { 'context': '[a-zA-Z0-9:]*->$'    , 'backward': '\<[a-z]*$' , 'comp': function('s:CompClassFunction') })
 
-cal s:addRule( { 'context': '[a-zA-Z0-9:]*->$'    , 'backward': '[a-z]*$' , 'comp': function('s:CompBufferFunction') })
 cal s:addRule( { 'context': '\s\+is\s\+=>\s\+$'  , 'backward': '\S*$'    , 'comp': function('s:CompMooseIs') } )
 cal s:addRule( { 'context': '\s\+isa\s\+=>\s\+$' , 'backward': '\S*$'    , 'comp': function('s:CompMooseIsa') } )
 
@@ -467,7 +485,8 @@ has url => (
     label     => "The site's URL",
 );
 
-Class->method
+Jifty::DBI::Record->
+
 $self->
 $var1 $var2 $var3 $var_test $var__adfasdf
 
