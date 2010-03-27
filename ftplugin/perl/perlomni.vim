@@ -361,8 +361,7 @@ endf
 
 fun! s:CompObjectMethod(base,context)
     let objvarname = substitute(a:context,'->$','','')
-    if ! has_key(b:objvarMapping,objvarname)
-
+    if ! exists('b:objvarMapping') || ! has_key(b:objvarMapping,objvarname)
         " find a small scope
         let minnr = line('.') - 10
         let minnr = minnr < 1 ? 1 : minnr
@@ -424,13 +423,13 @@ endf
 fun! s:scanVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''\$(\w+)'' | sort | uniq '),"\n") 
+    return split(system('grep-pattern.pl ' . buffile . ' ''\$(\w+)'' | sort | uniq '),"\n") 
 endf
 
 fun! s:scanFunctionFromList(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' | sort | uniq '),"\n")
+    return split(system('grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' | sort | uniq '),"\n")
 endf
 
 fun! s:scanFunctionFromClass(class)
@@ -449,7 +448,7 @@ fun! s:scanFunctionFromClass(class)
     if strlen(classfile) == 0
         return [ ]
     endif
-    return split(system('~/bin/grep-pattern.pl ' . classfile . ' ''^\s*sub\s+(\w+)'' | sort | uniq '),"\n")
+    return split(system('grep-pattern.pl ' . classfile . ' ''^\s*sub\s+(\w+)'' | sort | uniq '),"\n")
 endf
 " echo s:scanFunctionFromClass('Jifty::DBI::Record')
 
