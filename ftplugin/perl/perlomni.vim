@@ -255,6 +255,19 @@ fun! s:CompVariable(base,context)
     return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 
+fun! s:CompArrayVariable(base,context)
+    let lines = getline(1,'$')
+    let variables = s:scanArrayVariable(getline(1,'$'))
+    return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+endf
+
+
+fun! s:CompHashVariable(base,context)
+    let lines = getline(1,'$')
+    let variables = s:scanHashVariable(getline(1,'$'))
+    return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+endf
+
 fun! s:CompBufferFunction(base,context)
     let lines = getline(1,'$')
     let funclist = s:scanFunctionFromList(getline(1,'$'))
@@ -413,6 +426,18 @@ fun! s:scanObjectVariableFile(file)
 endf
 " echo s:scanObjectVariableFile( expand('~/git/bps/jifty-dbi/lib/Jifty/DBI/Collection.pm') )
 
+fun! s:scanHashVariable(lines)
+    let buffile = tempname()
+    cal writefile(a:lines,buffile)
+    return split(system('grep-pattern.pl ' . buffile . ' ''%(\w+)'' | sort | uniq '),"\n") 
+endf
+" echo s:scanHashVariable( getline(1,'$') )
+
+fun! s:scanArrayVariable(lines)
+    let buffile = tempname()
+    cal writefile(a:lines,buffile)
+    return split(system('grep-pattern.pl ' . buffile . ' ''@(\w+)'' | sort | uniq '),"\n") 
+endf
 
 fun! s:scanVariable(lines)
     let buffile = tempname()
@@ -467,8 +492,9 @@ cal s:addRule({'only':1, 'context': '^extends\s\+''$' , 'backward': '\<[A-Z][a-z
 cal s:addRule({'only':1, 'context': '^use \(base\|parent\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 
 " variable completion
-cal s:addRule({'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
-" cal s:addRule({'context': '%$', 'backward': '\<\w\+$', 'comp': function('') })
+cal s:addRule({'only':1, 'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
+cal s:addRule({'only':1, 'context': '%$', 'backward': '\<\w\+$', 'comp': function('s:CompHashVariable') })
+cal s:addRule({'only':1, 'context': '@$', 'backward': '\<\w\+$', 'comp': function('s:CompArrayVariable') })
 
 " function completion
 cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
@@ -516,6 +542,8 @@ $var->
 my $var = Jifty::DBI->new;
 $var->
 
+my %hash = ( );
+my @array = ( );
 
 " complete variable
 $var1 $var2 $var3 $var_test $var__adfasdf
