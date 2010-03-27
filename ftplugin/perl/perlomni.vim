@@ -4,7 +4,7 @@
 " Author:  Cornelius
 " Email:   cornelius.howl@gmail.com 
 " Version: 1.75
-let s:debug_flag = 1
+let s:debug_flag = 0
 runtime 'plugin/perlomni-data.vim'
 runtime 'plugin/perlomni-util.vim'
 
