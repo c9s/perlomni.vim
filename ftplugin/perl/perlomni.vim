@@ -214,13 +214,13 @@ endf
 " }}}
 " SIMPLE MOOSE COMPLETION {{{
 fun! s:CompMooseIs(base,context)
-    return s:Quote(['rw','ro','wo'])
+    return ['rw', 'ro', 'wo']
 endf
 
 fun! s:CompMooseIsa(base,context)
-    let l:comps = s:Quote(["Int", "Str", "HashRef", "HashRef[","Num",'ArrayRef'])
-    " XXX: could be class name
-    return s:RegExpFilter( l:comps, a:base  )
+    let l:comps = ['Int', 'Str', 'HashRef', 'HashRef[', 'Num', 'ArrayRef']
+    cal extend(l:comps, s:CompClassName(a:base,a:context))
+    return s:StringFilter( l:comps, a:base  )
 endf
 
 fun! s:CompMooseAttribute(base,context)
@@ -451,8 +451,9 @@ endf
 " rules have head should be first matched , because of we get first backward position.
 "
 " Moose Completion Rules {{{
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*''$'  , 'backward': '\w*$' , 'comp': function('s:CompMooseIs') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*''$' , 'backward': '\w*$' , 'comp': function('s:CompMooseIsa') } )
+
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
 cal s:addRule({ 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
 
@@ -467,6 +468,7 @@ cal s:addRule({'only':1, 'context': '^use \(base\|parent\)\s\+$' , 'backward': '
 
 " variable completion
 cal s:addRule({'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
+" cal s:addRule({'context': '%$', 'backward': '\<\w\+$', 'comp': function('') })
 
 " function completion
 cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
