@@ -8,7 +8,20 @@
 runtime 'plugin/perlomni-data.vim'
 runtime 'plugin/perlomni-util.vim'
 
-
+if ! executable('grep-objvar.pl')
+            \ && ! executable('grep-varnames.pl')
+    echo "Please add ~/.vim/bin to your PATH env variable."
+    echo "And make them executable."
+    echo "For example:"
+    echo ""
+    echo "  export PATH=~/.vim/bin/:$PATH"
+    echo ""
+    echo "And Run:"
+    echo ""
+    echo "  $ chmod +x ~/.vim/bin/grep-*.pl "
+    echo ""
+    finish
+endif
 
 fun! s:FindVarPackageName(var)
     for l in b:file
@@ -187,110 +200,6 @@ endf
 " b:lcontext : the text before cursor position
 " b:colpos   : cursor position - 1
 " b:lines    : range of scanning
-fun! PerlComplete(findstart, base)
-    let line = getline('.')
-    let lnum = line('.')
-    let start = col('.') - 1
-
-    if a:findstart
-        let s_pos = s:FindSpace(start,lnum,line)
-
-        " XXX: read lines from current buffer
-        " let b:lines   = 
-        let b:context  = getline('.')
-        let b:lcontext = strpart(getline('.'),0,col('.')-1)
-        let b:colpos   = col('.') - 1
-
-        let p = s:FindMethodCompStart()
-        if s:CompFound(p,s_pos)
-            cal s:SetCompType(['method'])
-            return p[1] - 1
-        endif
-
-        let p = s:FindPackageCompStart()
-        if s:CompFound(p,s_pos)
-            cal s:SetCompType(['package'])
-            return p[1] - 1
-        endif
-
-        if line =~ '^use '
-            cal s:SetCompType(['package-use'])
-            return 4
-        endif
-
-        " default completion type
-        cal s:SetCompType(['default'])
-        return start
-    else 
-        " cache this
-        let b:file = getline(1, '$')
-
-        let b:comp_items = [ ]
-
-        " hate vim script forgot last position we found 
-        " so we need to find a start again ... orz
-        let curfile = expand('%')
-
-        " save space positoin to prevent over searching 
-        let s_pos = s:FindSpace(start,lnum,line)
-        let p = s:FindMethodCompStart()
-        if s:CompFound(p,s_pos)
-            cal s:ClearCompType()
-
-            " get method compeltion here
-            let ref_start = s:FindMethodCompReferStart()
-            let ref_base = strpart( line , ref_start[1] - 1 , p[1] - 2 - ref_start[1] )
-            if ref_base =~ '\$\(self\|class\)' 
-                cal s:CompleteSelfFunctions( curfile , a:base )
-
-                " XXX: complete special variable if needed.
-            elseif ref_base =~ '\$\w\+'
-                let var = ref_base
-                let pkg = s:FindVarPackageName( var )
-                if strlen(pkg) > 0 
-                    let f = libperl#get_module_file_path(pkg)
-                    if filereadable(f)
-                        cal s:CompletePackageFunctions( f , a:base )
-                    endif
-                else
-                    return b:comp_items
-                endif
-            elseif ref_base =~ g:libperl#pkg_token_pattern 
-                let f = libperl#get_module_file_path(ref_base)
-                if filereadable(f)
-                    cal s:CompletePackageFunctions( f , a:base )
-                endif
-            endif
-            return b:comp_items
-        endif
-
-        " package completion ====================================
-        if s:HasCompType('package-use')
-            cal s:ClearCompType()
-            cal add(b:comp_items,'strict')
-            cal add(b:comp_items,'warnings')
-            cal s:CompletePackageName( a:base )
-            return b:comp_items
-        endif
-
-        if s:HasCompType('package')
-            cal s:ClearCompType()
-            cal s:CompletePackageName( a:base )
-            return b:comp_items
-        endif
-        " =======================================================
-
-        if s:HasCompType('default')
-            cal s:ClearCompType()
-            cal s:CompleteBFunctions(a:base)
-            cal s:CompletePackageName(a:base)
-            return b:comp_items
-        endif
-
-    endif
-    return b:comp_items
-endf
-
 
 fun! s:parseParagraphHead(fromLine)
     let lnum = a:fromLine
@@ -399,7 +308,7 @@ fun! s:StringFilter(list,string)
 endf
 " }}}
 
-" Simple Moose Completion {{{
+" SIMPLE MOOSE COMPLETION {{{
 fun! s:CompMooseIs(base,context)
     return s:Quote(['rw','ro','wo'])
 endf
@@ -423,7 +332,6 @@ fun! s:CompMooseRoleAttr(base,context)
     return s:StringFilter(attrs,a:base)
 endf
 " }}}
-
 " PERL CORE OMNI COMPLETION {{{
 fun! s:CompFunction(base,context)
     " return map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }')
@@ -473,15 +381,13 @@ fun! s:CompObjectMethod(base,context)
     return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 " }}}
-
 " SCOPE FUNCTIONS {{{
 " XXX:
 fun! s:getSubScopeLines(nr)
     let curline = getline(a:nr)
 endf
 " }}}
-
-" SCAN FUNCTIONS {{{
+" SCANNING FUNCTIONS {{{
 fun! s:scanObjectVariableLines(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
@@ -548,8 +454,7 @@ endf
 " echo s:scanFunctionFromClass('Jifty::DBI::Record')
 
 " }}}
-
-
+" RULES {{{
 " rules have head should be first matched , because of we get first backward position.
 "
 " Moose Completion Rules
@@ -566,10 +471,11 @@ cal s:addRule({'context': '\(->\)\@<!$', 'backward': '\<\w\+$' , 'comp': functio
 cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
-
+" }}}
 setlocal omnifunc=PerlComplete2
 
 finish
+" SAMPLES {{{
 
 " complete class methods
 Jifty::DBI::Record->
@@ -593,7 +499,7 @@ $var->
 
 " smart object method completion 2
 my $var = Jifty::DBI->new;
-$var->handle
+$var->
 
 
 " complete variable
@@ -621,3 +527,4 @@ with 'Restartable' => {
 };
 
 
+" }}}
