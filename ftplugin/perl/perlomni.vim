@@ -92,6 +92,24 @@ fun! s:defopt(name,value)
     endif
 endf
 
+fun! s:grepBufferList(pattern)
+    redir => bufferlist
+    silent buffers
+    redir END
+    let lines = split(bufferlist,"\n")
+    let files = [ ]
+    for line in lines
+        let [bufid,buftype,bufname,errr,nr] = split(line)
+        let bufname = substitute(bufname,'"$','','')
+        let bufname = substitute(bufname,'^"','','')
+        if bufname =~ a:pattern
+            cal add(files,bufname)
+        endif
+    endfor
+    return files
+endf
+" echo s:grepBufferList('\.vim$')
+
 " main completion function
 " b:context  : whole current line
 " b:lcontext : the text before cursor position
@@ -179,7 +197,14 @@ fun! PerlComplete2(findstart, base)
             if ( has_key( rule ,'head') && b:paragraph_head =~ rule.head && lefttext =~ rule.context ) ||
                     \ ( ! has_key(rule,'head') && lefttext =~ rule.context  )
 
-                cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
+                if type(rule.comp) == type(function('tr'))
+                    cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
+                elseif type(rule.comp) == type([])
+                    cal extend(b:comps,rule.comp)
+                else
+                    echoerr "Unknown completion handle type"
+                endif
+
                 if has_key(rule,'only') && rule.only == 1
                     return bwidx
                 endif
@@ -261,7 +286,6 @@ fun! s:CompArrayVariable(base,context)
     return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 
-
 fun! s:CompHashVariable(base,context)
     let lines = getline(1,'$')
     let variables = s:scanHashVariable(getline(1,'$'))
@@ -289,7 +313,13 @@ fun! s:CompObjectMethod(base,context)
         let minnr = minnr < 1 ? 1 : minnr
         let lines = getline( minnr , line('.') )
         cal s:scanObjectVariableLines(lines)
-        " cal s:scanObjectVariableFile()
+    endif
+
+    if ! has_key(b:objvarMapping,objvarname)
+        let bufferfiles = s:grepBufferList('\.p[ml]$')
+        for file in bufferfiles
+            cal s:scanObjectVariableFile( file )
+        endfor
     endif
 
     let funclist = [ ]
@@ -298,8 +328,9 @@ fun! s:CompObjectMethod(base,context)
         for class in classes
             cal extend(funclist,s:scanFunctionFromClass( class ))
         endfor
+        return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
     endif
-    return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    return [ ]
 endf
 
 fun! s:CompClassName(base,context)
@@ -412,7 +443,7 @@ endf
 " echo s:scanObjectVariableLines([])
 
 fun! s:scanObjectVariableFile(file)
-    let list = split(system('grep-objvar.pl ' . a:file . ' '),"\n") 
+    let list = split(system('grep-objvar.pl ' . expand(a:file) . ' '),"\n") 
     let b:objvarMapping = { }
     for item in list
         let [varname,classname] = split(item)
@@ -491,6 +522,8 @@ cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+$' , 'backward': '\<[A-Z]
 cal s:addRule({'only':1, 'context': '^extends\s\+''$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^use \(base\|parent\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 
+cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+shift;', 'comp': [ ' = shift;' ] })
+
 " variable completion
 cal s:addRule({'only':1, 'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
 cal s:addRule({'only':1, 'context': '%$', 'backward': '\<\w\+$', 'comp': function('s:CompHashVariable') })
@@ -526,6 +559,12 @@ Jifty::DBI::Record->
 " complete built-in function
 seekdir see
 
+
+" $self completion
+"   my $self
+" to 
+"   my $self = shift;
+my $self
 
 " complete current object methods
 sub testtest { }
