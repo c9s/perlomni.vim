@@ -71,25 +71,6 @@ fun! s:GrepFileFunctions(file)
     return funcs
 endf
 
-fun! s:CompleteSelfFunctions(file,base)
-    if ! exists('g:p5sfunctions')
-        let g:p5sfunctions = {}
-    endif
-
-    if ! exists('g:p5sfunctions[ a:file ]')
-        let g:p5sfunctions[a:file] = s:GrepFileFunctions(a:file)
-    endif
-
-    let subs = g:p5sfunctions[a:file]
-    cal s:FuncCompAdd( a:base , subs )
-
-    " find base class functions here
-    let bases = s:parseBaseClassFunction( a:file )
-    for b in bases
-        cal s:ClassCompAdd(a:base,b)
-    endfor
-endf
-
 fun! s:CompletePackageFunctions(file,base)
     " let class_comp = { 'class': class , 'refer': '' , 'functions': [ ] }
     let funcs = s:GrepFileFunctions( a:file )
@@ -381,6 +362,7 @@ fun! s:CompClassFunction(base,context)
     return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 
+
 fun! s:CompObjectMethod(base,context)
     let objvarname = substitute(a:context,'->$','','')
     if ! exists('b:objvarMapping') || ! has_key(b:objvarMapping,objvarname)
@@ -401,6 +383,81 @@ fun! s:CompObjectMethod(base,context)
     endif
     return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
+
+fun! s:CompClassName(base,context)
+    let sourcefile = CPANSourceLists()
+    let classnames = CPANParseSourceList( sourcefile )
+
+endf
+
+" }}}
+" PERL CLASS LIST UTILS {{{
+
+fun! CPANParseSourceList(file)
+  if ! exists('g:cpan_mod_cachef')
+    let g:cpan_mod_cachef = expand('~/.vim-cpan-module-cache')
+  endif
+  if executable('zcat')
+    let cmd = 'zcat ' . a:file . " | grep -v '^[0-9a-zA-Z-]*: '  | cut -d' ' -f1 > " . g:cpan_mod_cachef
+  else
+    let cmd = 'cat ' . a:file . " | gunzip | grep -v '^[0-9a-zA-Z-]*: '  | cut -d' ' -f1 > " . g:cpan_mod_cachef
+  endif
+  echo system( cmd )
+  if v:shell_error 
+    echoerr v:shell_error
+  endif
+  return readfile( g:cpan_mod_cachef )
+endf
+
+" XXX: copied from cpan.vim plugin , should be reused.
+" fetch source list from remote
+fun! CPANSourceLists()
+  let paths = [ 
+        \expand('~/.cpanplus/02packages.details.txt.gz'),
+        \expand('~/.cpan/sources/modules/02packages.details.txt.gz')
+        \]
+  if exists('g:cpan_user_defined_sources')
+    call extend( paths , g:cpan_user_defined_sources )
+  endif
+
+  for f in paths 
+    if filereadable( f ) 
+      return f
+    endif
+  endfor
+
+  " not found
+  cal s:echo("CPAN source list not found.")
+  let f = expand('~/.cpan/sources/modules/02packages.details.txt.gz')
+  " XXX: refactor me !!
+  if ! isdirectory( expand('~/.cpan') )
+    cal mkdir( expand('~/.cpan') )
+  endif
+
+  if ! isdirectory( expand('~/.cpan/sources') )
+    cal mkdir( expand('~/.cpan/sources') )
+  endif
+
+  if ! isdirectory( expand('~/.cpan/sources/modules') )
+    cal mkdir( expand('~/.cpan/sources/modules') )
+  endif
+
+  cal s:echo("Downloading CPAN source list.")
+  if executable('curl')
+    exec '!curl http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -o ' . f
+    return f
+  elseif executable('wget')
+    exec '!wget http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -O ' . f
+    return f
+  endif
+  echoerr "You don't have curl or wget to download the package list."
+  return
+endf
+" let sourcefile = CPANSourceLists()
+" let classnames = CPANParseSourceList( sourcefile )
+" echo remove(classnames,10)
+
+
 " }}}
 " SCOPE FUNCTIONS {{{
 " XXX:
@@ -484,13 +541,14 @@ cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
 cal s:addRule( { 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
 
-
 " Core Completion Rules
 cal s:addRule({'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
 cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
 cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
+cal s:addRule({'context': '\<new\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]+', 'comp': function('s:CompClassName') } )
+
 " }}}
 setlocal omnifunc=PerlComplete2
 
