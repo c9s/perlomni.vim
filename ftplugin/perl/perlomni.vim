@@ -407,7 +407,16 @@ endf
 
 fun! s:CompMooseIsa(base,context)
     let l:comps = s:Quote(["Int", "Str", "HashRef", "HashRef[","Num",'ArrayRef'])
+    " XXX: could be class name
     return s:RegExpFilter( l:comps, a:base  )
+endf
+
+fun! s:CompMooseAttribute(base,context)
+    let values = [ 'default' , 'is' , 'isa' , 
+                \ 'label' , 'predicate', 'metaclass', 'label', 
+                \ 'expires_after', 
+                \ 'refresh_with' , 'required' ]
+    return s:StringFilter(values,a:base)
 endf
 " }}}
 
@@ -437,6 +446,7 @@ fun! s:CompClassFunction(base,context)
     let funclist = s:scanFunctionFromClass( class )
     return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
+" }}}
 
 " SCAN FUNCTIONS {{{
 fun! s:scanVariable(lines)
@@ -450,8 +460,6 @@ fun! s:scanFunctionFromList(lines)
     cal writefile(a:lines,buffile)
     return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' '),"\n")
 endf
-
-
 
 fun! s:scanFunctionFromClass(class)
     let paths = split(&path,',')
@@ -475,7 +483,6 @@ endf
 
 " }}}
 
-
 " rules have head should be first matched , because of we get first backward position.
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
 cal s:addRule( { 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
@@ -486,7 +493,6 @@ cal s:addRule( { 'context': '\(->\)\@<!$', 'backward': '\<\w\+$' , 'comp': funct
 cal s:addRule( { 'context': '\$self->$'    , 'backward': '\<\w\+$' , 'comp': function('s:CompBufferFunction') })
 cal s:addRule( { 'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '[a-zA-Z]*$' , 'comp': function('s:CompClassFunction') })
 
-
 setlocal omnifunc=PerlComplete2
 
 finish
@@ -496,6 +502,11 @@ Jifty::DBI::Record->_columns_hashref
 
 " complete built-in function
 seekdir
+
+
+sub testtest {
+
+}
 
 " complete current object methods
 $self->
@@ -514,6 +525,4 @@ has url => (
     isa       => 'HashRef',
     label     => "The site's URL",
 );
-
-
 
