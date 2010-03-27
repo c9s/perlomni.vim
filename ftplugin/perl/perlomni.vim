@@ -393,19 +393,41 @@ endf
 
 fun! s:CompVariable(base)
     " scan variables in current buffer
+    let lines = getline(1,'$')
+    let variables = s:scanVariable(getline(1,'$'))
+    return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+endf
 
+fun! s:CompBufferFunction(base)
+    let lines = getline(1,'$')
+    let funclist = s:scanFunction(getline(1,'$'))
+    return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+endf
 
+" SCAN FUNCTIONS {{{
+fun! s:scanVariable(lines)
+    let buffile = tempname()
+    cal writefile(a:lines,buffile)
+    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''(\$\w+)'' '),"\n") 
+endf
+
+fun! s:scanFunction(lines)
+    let buffile = tempname()
+    cal writefile(a:lines,buffile)
+    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' '),"\n")
 endf
 " }}}
 
 cal s:addRule( { 'context': '\s\+is\s\+$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIs') } )
 cal s:addRule( { 'context': '\s\+isa\s\+$' , 'backward': '\S*$' , 'comp': function('s:CompMooseIsa') } )
-cal s:addRule( { 'context': '\s$'          , 'backward': '[a-z]\+$' , 'comp': function('s:CompFunction') })
+cal s:addRule( { 'context': '\s$'          , 'backward': '[a-z]*$' , 'comp': function('s:CompFunction') })
+cal s:addRule( { 'context': '\$self->$'    , 'backward': '[a-z]*$' , 'comp': function('s:CompBufferFunction') })
 cal s:addRule( { 'context': '\s$'          , 'backward': '\$\w\+$'  , 'comp': function('s:CompVariable') })
-
-
 
 setlocal omnifunc=PerlComplete2
 
 " isa 'HashRef'
 " is 'rw'
+" $var1 , $var2 
+" $var3 , $var
+
