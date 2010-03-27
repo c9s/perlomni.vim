@@ -333,8 +333,13 @@ fun! PerlComplete2(findstart, base)
             if strlen(match) > 0
                 let bwidx   = stridx( b:lcontext , match )
             else
-                " let bwidx   = strlen(b:lcontext)
-                let bwidx = -1
+                " if backward regexp matched is empty, check if context regexp
+                " is matched ? if yes, set bwidx to length, if not , set to -1
+                if b:lcontext =~ rule.context
+                    let bwidx = strlen(b:lcontext)
+                else
+                    let bwidx = -1
+                endif
             endif
 
             " see if there is first matched index
@@ -346,26 +351,27 @@ fun! PerlComplete2(findstart, base)
                 continue
             endif
 
-            echo string(rule.comp)  . " matched!"
-            sleep 500ms
-
             " lefttext: context matched text
             " basetext: backward matched text
             
             let lefttext = strpart(b:lcontext,0,bwidx)
             let basetext = strpart(b:lcontext,bwidx)
 
-            "         echo "'" .lefttext . "'"
-            "         sleep 1
-            "         echo "'" .basetext . "'"
-            "         sleep 1
+            echo string(rule.comp) . ' regexp: "' . rule.context . '" ' . "lcontext:'" .lefttext . "'" .  " basetext:'" .basetext . "'"
+            "sleep 3
+
             if lefttext =~ rule.context
+
+                echo 'calling ' . string(rule.comp)
+                sleep 500ms
+
                 cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
 
                 " save first backward index
                 if first_bwidx == -1
                     let first_bwidx = bwidx
                 endif
+
             endif
         endfor
         return first_bwidx
@@ -431,14 +437,16 @@ fun! s:CompBufferFunction(base,context)
 endf
 
 fun! s:CompClassFunction(base,context)
-
+    let class = substitute(a:context,'->$','','')
+    let funclist = s:scanFunctionFromClass( class )
+    return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 
 " SCAN FUNCTIONS {{{
 fun! s:scanVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''(\$\w+)'' '),"\n") 
+    return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''\$(\w+)'' '),"\n") 
 endf
 
 fun! s:scanFunctionFromList(lines)
@@ -447,13 +455,18 @@ fun! s:scanFunctionFromList(lines)
     return split(system('~/bin/grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' '),"\n")
 endf
 
+
+
 fun! s:scanFunctionFromClass(class)
     let paths = split(&path,',')
+
+    " FOR DEBUG
+    let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
     let filepath = substitute(a:class,'::','/','g') . '.pm'
     let classfile = ''
     for path in paths
-        if filereadable( path .'/'. filepath ) 
-            let classfile = path . '/' . filepath
+        if filereadable( path . '/' . filepath ) 
+            let classfile = path .'/' . filepath
             break
         endif
     endfor
@@ -462,14 +475,14 @@ fun! s:scanFunctionFromClass(class)
     endif
     return split(system('~/bin/grep-pattern.pl ' . classfile . ' ''^\s*sub\s+(\w+)'' '),"\n")
 endf
-
+" echo s:scanFunctionFromClass('Jifty::DBI::Record')
 
 " }}}
 
-cal s:addRule( { 'context': '\s*$'         , 'backward': '\$\w\+$' , 'comp': function('s:CompVariable') })
-cal s:addRule( { 'context': '\s*$'         , 'backward': '\<[a-z]*$' , 'comp': function('s:CompFunction') })
-cal s:addRule( { 'context': '\$self->$'    , 'backward': '\<[a-z]*$' , 'comp': function('s:CompBufferFunction') })
-cal s:addRule( { 'context': '[a-zA-Z0-9:]*->$'    , 'backward': '\<[a-z]*$' , 'comp': function('s:CompClassFunction') })
+cal s:addRule( { 'context': '\s*\$$'         , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
+cal s:addRule( { 'context': '\(->\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
+cal s:addRule( { 'context': '\$self->$'    , 'backward': '\<\w\+$' , 'comp': function('s:CompBufferFunction') })
+cal s:addRule( { 'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '[a-zA-Z]*$' , 'comp': function('s:CompClassFunction') })
 
 cal s:addRule( { 'context': '\s\+is\s\+=>\s\+$'  , 'backward': '\S*$'    , 'comp': function('s:CompMooseIs') } )
 cal s:addRule( { 'context': '\s\+isa\s\+=>\s\+$' , 'backward': '\S*$'    , 'comp': function('s:CompMooseIsa') } )
@@ -477,20 +490,26 @@ cal s:addRule( { 'context': '\s\+isa\s\+=>\s\+$' , 'backward': '\S*$'    , 'comp
 setlocal omnifunc=PerlComplete2
 
 finish
-" Test Code
+
+" complete class methods
+Jifty::DBI::Record->_columns_hashref
+
+" complete built-in function
+ seekdir
+
+" complete current object methods
+$self->
+
+
+" complete variable
+$var1 $var2 $var3 $var_test $var__adfasdf
+$var__adfasdf
+
+
+" moose complete
 has url => (
     metaclass => 'Labeled',
     is        => 'rw',
     isa       => 'ArrayRef',
     label     => "The site's URL",
 );
-
-Jifty::DBI::Record->
-
-$self->
-$var1 $var2 $var3 $var_test $var__adfasdf
-
-$var3
-seekdir
-
-
