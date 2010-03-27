@@ -1,0 +1,33 @@
+
+Screenshot
+==========
+
+Install
+========
+
+perl-completion.vim comes with some depended vim scripts (libperl.vim and
+search-window.vim) and perl-completion.vim is using PPI (pure perl parser) to
+parse perl syntax to make completions.
+
+to install PPI:
+
+    $ sudo cpan PPI
+
+put the util script `utils/find_base_classes.pl` to your $PATH.
+
+copy `ftplugin/perl/perlomni.vim` to your `~/.vim/ftplugin/perl/` runtime path.
+
+and put libperl.vim ( http://github.com/c9s/libperl.vim/raw/master/vimlib/autoload/libperl.vim )
+to your `~/.vim/autoload/`.
+
+to enable perl-completion.vim omni completion, you have to enable your filetype
+plugin on. pre-append those settings to your `.vimrc`:
+
+    filetype on
+    filetype plugin on
+    filetype indent on
+
+Usage
+=====
+
+ C-x C-o to emit omnicompletion.
