@@ -26,6 +26,14 @@ Usage
 
 In insert mode , press C-x C-o to emit omnicompletion.
 
+
+Author
+======
+
+Cornelius (林佑安) 
+
+twitter:  http://twitter.com/c9s
+
 Samples
 =======
 
