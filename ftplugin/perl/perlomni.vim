@@ -25,6 +25,9 @@ endif
 
 
 fun! GetCacheNS(ns,key)
+    if ! g:perlomni_use_cache
+        return 0
+    endif
     let key = a:ns . "_" . a:key
     if exists('g:perlomni_cache[key]')
         return g:perlomni_cache[key]
@@ -638,7 +641,6 @@ setlocal omnifunc=PerlComplete2
 cal s:defopt('perlomni_max_class_length',100)
 cal s:defopt('perlomni_sort_class_by_lenth',1)
 cal s:defopt('perlomni_use_cache',1)
-
 
 finish
 " SAMPLES {{{
