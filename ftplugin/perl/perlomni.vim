@@ -290,7 +290,7 @@ fun! s:CompMooseRoleAttr(base,context)
     return s:StringFilter(attrs,a:base)
 endf
 fun! s:CompMooseStatement(base,context)
-    let sts = [ 'extends' , 'after' , 'before', 'has' , 'requires' , 'with' , 'override' ]
+    let sts = [ 'extends' , 'after' , 'before', 'has' , 'requires' , 'with' , 'override' , 'method' ]
     return s:StringFilter(sts,a:base)
 endf
 " }}}
@@ -616,7 +616,6 @@ cal s:addRule({ 'context': '^\s*$', 'backward': '\w\+$', 'comp':function('s:Comp
 cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^extends\s\+''$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^use \(base\|parent\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
-
 cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+shift;', 'comp': [ ' = shift;' ] })
 
 " variable completion
@@ -624,11 +623,14 @@ cal s:addRule({'only':1, 'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': f
 cal s:addRule({'only':1, 'context': '%$', 'backward': '\<\w\+$', 'comp': function('s:CompHashVariable') })
 cal s:addRule({'only':1, 'context': '@$', 'backward': '\<\w\+$', 'comp': function('s:CompArrayVariable') })
 
+cal s:addRule({'only':1, 'context': '&$', 'backward': '\<\w\+$', 'comp': function('s:CompBufferFunction') })
+
 " function completion
 cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
 cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
+
 
 " string completion
 " cal s:addRule({'context': '\s''', 'backward': '\_[^'']*$' , 'comp': function('s:CompQString') })
@@ -671,7 +673,10 @@ sub testtest { }
 sub foo1 { }
 sub foo2 { }
 
+
 $self->testtest
+
+\&fo
 
 " smart object method completion
 my $var = new Jifty;
