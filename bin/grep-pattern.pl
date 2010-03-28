@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $file    = shift;
 my $pattern = shift;
-open FH, "<" , $file;
+open FH, "<" , $file or die $!;
 my @lines = <FH>;
 
 my @vars = ();
