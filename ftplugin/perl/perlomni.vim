@@ -532,8 +532,6 @@ endf
 fun! s:scanHashVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    echo buffile
-    sleep 1
     return split(system('grep-pattern.pl ' . buffile . ' ''%(\w+)'' | sort | uniq '),"\n") 
 endf
 " echo s:scanHashVariable( getline(1,'$') )
