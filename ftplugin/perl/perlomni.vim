@@ -23,19 +23,21 @@ if ! executable('grep-objvar.pl')
     finish
 endif
 
+
 fun! GetCacheNS(ns,key)
-    if exists('g:perlomni_cache[a:ns."_".a:key]')
-        return g:perlomni_cache[a:ns."_".a:key]
-    else
-        return 0
+    let key = a:ns . "_" . a:key
+    if exists('g:perlomni_cache[key]')
+        return g:perlomni_cache[key]
     endif
+    return 0
 endf
 
 fun! SetCacheNS(ns,key,value)
     if ! exists('g:perlomni_cache')
         let g:perlomni_cache = { }
     endif
-    let g:perlomni_cache[a:ns."_".a:key]= a:value
+    let key = a:ns . "_" . a:key
+    let g:perlomni_cache[ key ] = a:value
 endf
 
 " unlet g:perlomni_cache
@@ -267,7 +269,7 @@ endf
 
 fun! s:CompMooseIsa(base,context)
     let l:comps = ['Int', 'Str', 'HashRef', 'HashRef[', 'Num', 'ArrayRef']
-    let base = substitute(a:base,'^''','','g')
+    let base = substitute(a:base,'^[''"]','','')
     cal extend(l:comps, s:CompClassName(base,a:context))
     return s:Quote(s:StringFilter( l:comps, base  ))
 endf
@@ -315,13 +317,13 @@ endf
 fun! s:CompBufferFunction(base,context)
     let l:cache = GetCacheNS('bufferfunction',a:base.bufnr('%'))
     if type(l:cache) != type(0)
-        " return l:cache
+        return l:cache
     endif
 
     let lines = getline(1,'$')
     let funclist = s:scanFunctionFromList(getline(1,'$'))
     let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-    " cal SetCacheNS('classfunc',a:base.bufnr('%'),result)
+    cal SetCacheNS('classfunc',a:base.bufnr('%'),result)
     return result
 endf
 
@@ -329,7 +331,7 @@ fun! s:CompClassFunction(base,context)
     let class = substitute(a:context,'->$','','')
     let l:cache = GetCacheNS('classfunc',class.a:base)
     if type(l:cache) != type(0)
-        " return l:cache
+        return l:cache
     endif
 
     let funclist = s:scanFunctionFromClass(class)
@@ -337,6 +339,7 @@ fun! s:CompClassFunction(base,context)
     " cal SetCacheNS('classfunc',class.a:base,result)
     return result
 endf
+
 
 
 fun! s:CompObjectMethod(base,context)
@@ -369,7 +372,7 @@ endf
 fun! s:CompClassName(base,context)
     let cache = GetCacheNS('class',a:base)
     if type(cache) != type(0)
-"         return cache
+        return cache
     endif
 
     " prevent waiting too long
@@ -388,17 +391,17 @@ fun! s:CompClassName(base,context)
 
     if len(result) > g:perlomni_max_class_length 
         cal remove(result,0, g:perlomni_max_class_length)
-        for item in result
-            let parts = split(item,'::')
-            while len(parts) > 0
-                if len(parts) > 1
-                    cal insert(result,join(parts,'::'))
-                else
-                    cal insert(result,join(parts,'::').'::')
-                endif
-                cal remove(parts,-1)
-            endwhile
-        endfor
+"         for item in result
+"             let parts = split(item,'::')
+"             while len(parts) > 0
+"                 if len(parts) > 1
+"                     cal insert(result,join(parts,'::'))
+"                 else
+"                     cal insert(result,join(parts,'::').'::')
+"                 endif
+"                 cal remove(parts,-1)
+"             endwhile
+"         endfor
         if g:perlomni_sort_class_by_lenth
             cal sort(result,'s:SortByLength')
         else
@@ -594,8 +597,8 @@ endf
 " rules have head should be first matched , because of we get first backward position.
 "
 " Moose Completion Rules {{{
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '''\?\w*$' , 'comp': function('s:CompMooseIs') } )
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '''\?\w*$' , 'comp': function('s:CompMooseIsa') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '[''"]\?\w*$' , 'comp': function('s:CompMooseIs') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '[''"]\?\S*$' , 'comp': function('s:CompMooseIsa') } )
 
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
 cal s:addRule({ 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
@@ -632,9 +635,9 @@ cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp'
 setlocal omnifunc=PerlComplete2
 
 " Configurations
-cal s:defopt('perlomni_max_class_length',200)
+cal s:defopt('perlomni_max_class_length',100)
 cal s:defopt('perlomni_sort_class_by_lenth',1)
-cal s:defopt('perlomni_cache',1)
+cal s:defopt('perlomni_use_cache',1)
 
 
 finish
@@ -644,10 +647,10 @@ extends 'Moose::Meta::Attribute';
 extends 'AAC::Pvoice';
 
 " module compeltion
-my $obj = new Jifty::
+my $obj = new Jifty::Web;
 
 " complete class methods
-Jifty::DBI::Record->_handle
+Jifty::DBI::Record->
 
 " complete built-in function
 seekdir splice 
@@ -686,8 +689,8 @@ $var__adfasd  $var1
 has url => (
     metaclass => 'Labeled',
     is        => 'rw',
-    is        => 'rw',
     label     => "The site's URL",
+    isa => 'AFS::Object::Server',
 );
 
 " role
@@ -702,7 +705,6 @@ with 'Restartable' => {
 
 # 'string' , 'string \' escpae'
 
- 
-
+new Jifty::View::Declare::Page
 
 " }}}
