@@ -396,17 +396,19 @@ fun! s:CompClassName(base,context)
 
     if len(result) > g:perlomni_max_class_length 
         cal remove(result,0, g:perlomni_max_class_length)
-        for item in result
-            let parts = split(item,'::')
-            while len(parts) > 0
-                if len(parts) > 1
-                    cal insert(result,join(parts,'::'))
-                else
-                    cal insert(result,join(parts,'::').'::')
-                endif
-                cal remove(parts,-1)
-            endwhile
-        endfor
+
+" Find a better way
+"         for item in result
+"             let parts = split(item,'::')
+"             while len(parts) > 0
+"                 if len(parts) > 1
+"                     cal insert(result,join(parts,'::'))
+"                 else
+"                     cal insert(result,join(parts,'::').'::')
+"                 endif
+"                 cal remove(parts,-1)
+"             endwhile
+"         endfor
         if g:perlomni_sort_class_by_lenth
             cal sort(result,'s:SortByLength')
         else
@@ -643,7 +645,7 @@ setlocal omnifunc=PerlComplete2
 
 " Configurations
 cal s:defopt('perlomni_max_class_length',100)
-cal s:defopt('perlomni_sort_class_by_lenth',1)
+cal s:defopt('perlomni_sort_class_by_lenth',0)
 cal s:defopt('perlomni_use_cache',1)
 
 finish
