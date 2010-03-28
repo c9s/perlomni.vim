@@ -302,6 +302,8 @@ endf
 fun! s:CompVariable(base,context)
     let lines = getline(1,'$')
     let variables = s:scanVariable(getline(1,'$'))
+    cal extend( variables , s:scanArrayVariable(getline(1,'$')))
+    cal extend( variables , s:scanHashVariable(getline(1,'$')))
     return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 
@@ -681,6 +683,7 @@ $var->
 
 my %hash = ( );
 my @array = ( );
+
 
 " complete variable
 $var1 $var2 $var3 $var_test $var__adfasdf
