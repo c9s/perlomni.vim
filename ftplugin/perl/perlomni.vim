@@ -369,14 +369,14 @@ endf
 fun! s:CompClassName(base,context)
     let cache = GetCacheNS('class',a:base)
     if type(cache) != type(0)
-        return cache
+"         return cache
     endif
-
 
     " prevent waiting too long
     if strlen(a:base) == 0
         return [ ]
     endif
+
     if exists('g:cpan_mod_cache')
         let classnames = g:cpan_mod_cache
     else
@@ -687,7 +687,6 @@ has url => (
     metaclass => 'Labeled',
     is        => 'rw',
     is        => 'rw',
-    isa       => 'URL',
     label     => "The site's URL",
 );
 
