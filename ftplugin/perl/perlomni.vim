@@ -24,8 +24,8 @@ if ! executable('grep-objvar.pl')
 endif
 
 fun! GetCacheNS(ns,key)
-    if exists('g:perlomni_cache[a:ns.a:key]')
-        return g:perlomni_cache[a:ns . a:key]
+    if exists('g:perlomni_cache[a:ns."_".a:key]')
+        return g:perlomni_cache[a:ns."_".a:key]
     else
         return 0
     endif
@@ -35,7 +35,7 @@ fun! SetCacheNS(ns,key,value)
     if ! exists('g:perlomni_cache')
         let g:perlomni_cache = { }
     endif
-    let g:perlomni_cache[a:ns.a:key]= a:value
+    let g:perlomni_cache[a:ns."_".a:key]= a:value
 endf
 
 " unlet g:perlomni_cache
@@ -220,7 +220,7 @@ fun! PerlComplete2(findstart, base)
                     \ ( ! has_key(rule,'head') && lefttext =~ rule.context  )
 
                 if type(rule.comp) == type(function('tr'))
-                    cal extend(b:comps,call( rule.comp, [basetext,lefttext] ))
+                    cal extend(b:comps, call( rule.comp, [basetext,lefttext] ) )
                 elseif type(rule.comp) == type([])
                     cal extend(b:comps,rule.comp)
                 else
@@ -313,21 +313,29 @@ fun! s:CompHashVariable(base,context)
 endf
 
 fun! s:CompBufferFunction(base,context)
+    let l:cache = GetCacheNS('bufferfunction',a:base.bufnr('%'))
+    if type(l:cache) != type(0)
+        " return l:cache
+    endif
+
     let lines = getline(1,'$')
     let funclist = s:scanFunctionFromList(getline(1,'$'))
-    return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    " cal SetCacheNS('classfunc',a:base.bufnr('%'),result)
+    return result
 endf
 
 fun! s:CompClassFunction(base,context)
-    let l:cache = GetCacheNS('classfunc',a:base)
+    let class = substitute(a:context,'->$','','')
+    let l:cache = GetCacheNS('classfunc',class.a:base)
     if type(l:cache) != type(0)
-        return l:cache
+        " return l:cache
     endif
 
-    let class = substitute(a:context,'->$','','')
-    let funclist = s:scanFunctionFromClass( class )
-    cal SetCacheNS('classfunc',a:base,funclist)
-    return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    let funclist = s:scanFunctionFromClass(class)
+    let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    " cal SetCacheNS('classfunc',class.a:base,result)
+    return result
 endf
 
 
@@ -404,6 +412,13 @@ endf
 fun! s:SortByLength(i1, i2)
     return strlen(a:i1) == strlen(a:i2) ? 0 : strlen(a:i1) > strlen(a:i2) ? 1 : -1
 endfunc
+
+fun! s:CompQString(base,context)
+    let lines = getline(1,'$')
+    let strings = s:scanQString( lines )
+    return s:StringFilter(strings,a:base)
+endf
+
 " let sortedlist = sort(mylist, "MyCompare")
 
 " }}}
@@ -517,9 +532,26 @@ endf
 fun! s:scanHashVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
+    echo buffile
+    sleep 1
     return split(system('grep-pattern.pl ' . buffile . ' ''%(\w+)'' | sort | uniq '),"\n") 
 endf
 " echo s:scanHashVariable( getline(1,'$') )
+
+
+fun! s:scanQString(lines)
+    let buffile = tempname()
+    cal writefile( a:lines, buffile)
+    let cmd = system('grep-pattern.pl '.buffile.' ''[''](.*?)(?<!\\)['']''')
+    return split( cmd ,"\n")
+endf
+
+fun! s:scanQQString(lines)
+    let buffile = tempname()
+    cal writefile( a:lines, buffile)
+    return split(system('grep-pattern.pl '.buffile.' ''["](.*?)(?<!\\)["]'''),"\n")
+endf
+" echo s:scanQQStringFile('testfile')
 
 fun! s:scanArrayVariable(lines)
     let buffile = tempname()
@@ -591,7 +623,12 @@ cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': fun
 cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
+
+" string completion
+" cal s:addRule({'context': '\s''', 'backward': '\_[^'']*$' , 'comp': function('s:CompQString') })
+
 " }}}
+
 
 " }}}
 setlocal omnifunc=PerlComplete2
@@ -609,13 +646,13 @@ extends 'Moose::Meta::Attribute';
 extends 'AAC::Pvoice';
 
 " module compeltion
-my $obj = new 
+my $obj = new Jifty::
 
 " complete class methods
 Jifty::DBI::Record->_handle
 
 " complete built-in function
-seekdir splice
+seekdir splice 
 
 
 " $self completion
@@ -629,7 +666,7 @@ sub testtest { }
 sub foo1 { }
 sub foo2 { }
 
-$self->
+$self->testtest
 
 " smart object method completion
 my $var = new Jifty;
@@ -665,6 +702,10 @@ with 'Restartable' => {
     },
     -excludes => [ 'stop', 'start' ],
 };
+
+# 'string' , 'string \' escpae'
+
+ 
 
 
 " }}}
