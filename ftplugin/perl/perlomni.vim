@@ -319,8 +319,14 @@ fun! s:CompBufferFunction(base,context)
 endf
 
 fun! s:CompClassFunction(base,context)
+    let l:cache = GetCacheNS('classfunc',a:base)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
+
     let class = substitute(a:context,'->$','','')
     let funclist = s:scanFunctionFromClass( class )
+    cal SetCacheNS('classfunc',a:base,funclist)
     return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
 endf
 
