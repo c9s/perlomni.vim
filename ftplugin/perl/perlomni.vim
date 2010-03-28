@@ -23,14 +23,36 @@ if ! executable('grep-objvar.pl')
     finish
 endif
 
-fun! s:FindVarPackageName(var)
-    for l in b:file
-        if l =~  '\('.escape(a:var,'$\').'\s*=\s*\)\@<=[A-Z][a-z:]*\(->new\)\@='
-            return matchstr( l , '\(\s*=\s*\)\@<=[A-Z][a-z:]*\(->new\)\@=' )
-        endif
-    endfor
+fun! GetCacheNS(ns,key)
+    if exists('g:perlomni_cache[a:ns.a:key]')
+        return g:perlomni_cache[a:ns . a:key]
+    else
+        return 0
+    endif
 endf
 
+fun! SetCacheNS(ns,key,value)
+    if ! exists('g:perlomni_cache')
+        let g:perlomni_cache = { }
+    endif
+    let g:perlomni_cache[a:ns.a:key]= a:value
+endf
+
+" unlet g:perlomni_cache
+" cal SetCacheNS('class', 'zz', "String" )
+" let cache = GetCacheNS('class','zz')
+" ech cache
+" 
+" if type(cache) == type(0)
+"     unlet cache
+" endif
+" 
+
+
+
+
+
+" XXX:
 fun! s:FindBaseClasses(file)
     let script = 'find_base_classes.pl'
     if ! executable( script )
@@ -234,18 +256,20 @@ fun! s:RegExpFilter(list,pattern)
 endf
 
 fun! s:StringFilter(list,string)
-    return filter( copy(a:list),"stridx(v:val,'".a:string."') == 0 && v:val != '".a:string."'" )
+    let string = substitute(a:string,"'","''",'g')
+    return filter(copy(a:list),"stridx(v:val,'".string."') == 0 && v:val != '".string."'" )
 endf
 " }}}
 " SIMPLE MOOSE COMPLETION {{{
 fun! s:CompMooseIs(base,context)
-    return ['rw', 'ro', 'wo']
+    return s:Quote(['rw', 'ro', 'wo'])
 endf
 
 fun! s:CompMooseIsa(base,context)
     let l:comps = ['Int', 'Str', 'HashRef', 'HashRef[', 'Num', 'ArrayRef']
-    cal extend(l:comps, s:CompClassName(a:base,a:context))
-    return s:StringFilter( l:comps, a:base  )
+    let base = substitute(a:base,'^''','','g')
+    cal extend(l:comps, s:CompClassName(base,a:context))
+    return s:Quote(s:StringFilter( l:comps, base  ))
 endf
 
 fun! s:CompMooseAttribute(base,context)
@@ -267,14 +291,10 @@ endf
 " }}}
 " PERL CORE OMNI COMPLETION {{{
 fun! s:CompFunction(base,context)
-    " return map(filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' ),'{ "word" : v:val , "kind": "f" }')
-    " return filter(copy(g:p5bfunctions),'v:val =~ ''^'.a:base.'''' )
-    " return s:RegExpFilter( g:p5bfunctions , a:base )
     return s:StringFilter(g:p5bfunctions,a:base)
 endf
 
 fun! s:CompVariable(base,context)
-    " scan variables in current buffer
     let lines = getline(1,'$')
     let variables = s:scanVariable(getline(1,'$'))
     return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
@@ -308,7 +328,6 @@ endf
 fun! s:CompObjectMethod(base,context)
     let objvarname = substitute(a:context,'->$','','')
     if ! exists('b:objvarMapping') || ! has_key(b:objvarMapping,objvarname)
-        " find a small scope
         let minnr = line('.') - 10
         let minnr = minnr < 1 ? 1 : minnr
         let lines = getline( minnr , line('.') )
@@ -334,6 +353,16 @@ fun! s:CompObjectMethod(base,context)
 endf
 
 fun! s:CompClassName(base,context)
+    let cache = GetCacheNS('class',a:base)
+    if type(cache) != type(0)
+        return cache
+    endif
+
+
+    " prevent waiting too long
+    if strlen(a:base) == 0
+        return [ ]
+    endif
     if exists('g:cpan_mod_cache')
         let classnames = g:cpan_mod_cache
     else
@@ -341,13 +370,35 @@ fun! s:CompClassName(base,context)
         let classnames = CPANParseSourceList( sourcefile )
         let g:cpan_mod_cache = classnames
     endif
-    let result = filter(copy(classnames),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    let result = s:StringFilter(classnames,a:base)
+
     if len(result) > g:perlomni_max_class_length 
-        return remove(result,0, g:perlomni_max_class_length)
-    else
-        return result
+        cal remove(result,0, g:perlomni_max_class_length)
+        for item in result
+            let parts = split(item,'::')
+            while len(parts) > 0
+                if len(parts) > 1
+                    cal insert(result,join(parts,'::'))
+                else
+                    cal insert(result,join(parts,'::').'::')
+                endif
+                cal remove(parts,-1)
+            endwhile
+        endfor
+        if g:perlomni_sort_class_by_lenth
+            cal sort(result,'s:SortByLength')
+        else
+            cal sort(result)
+        endif
     endif
+    cal SetCacheNS('class',a:base,result)
+    return result
 endf
+
+fun! s:SortByLength(i1, i2)
+    return strlen(a:i1) == strlen(a:i2) ? 0 : strlen(a:i1) > strlen(a:i2) ? 1 : -1
+endfunc
+" let sortedlist = sort(mylist, "MyCompare")
 
 " }}}
 " PERL CLASS LIST UTILS {{{
@@ -507,8 +558,8 @@ endf
 " rules have head should be first matched , because of we get first backward position.
 "
 " Moose Completion Rules {{{
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*''$'  , 'backward': '\w*$' , 'comp': function('s:CompMooseIs') } )
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*''$' , 'backward': '\w*$' , 'comp': function('s:CompMooseIsa') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '''\?\w*$' , 'comp': function('s:CompMooseIs') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '''\?\w*$' , 'comp': function('s:CompMooseIsa') } )
 
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
 cal s:addRule({ 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
@@ -541,6 +592,8 @@ setlocal omnifunc=PerlComplete2
 
 " Configurations
 cal s:defopt('perlomni_max_class_length',200)
+cal s:defopt('perlomni_sort_class_by_lenth',1)
+cal s:defopt('perlomni_cache',1)
 
 
 finish
@@ -550,14 +603,13 @@ extends 'Moose::Meta::Attribute';
 extends 'AAC::Pvoice';
 
 " module compeltion
-my $obj = new B::C;
-
+my $obj = new 
 
 " complete class methods
-Jifty::DBI::Record->
+Jifty::DBI::Record->_handle
 
 " complete built-in function
-seekdir see
+seekdir splice
 
 
 " $self completion
@@ -588,13 +640,13 @@ my @array = ( );
 $var1 $var2 $var3 $var_test $var__adfasdf
 $var__adfasd  $var1 
 
-
 " moose complete
 
 has url => (
     metaclass => 'Labeled',
     is        => 'rw',
-    isa       => 'Str',
+    is        => 'rw',
+    isa       => 'URL',
     label     => "The site's URL",
 );
 
@@ -607,5 +659,6 @@ with 'Restartable' => {
     },
     -excludes => [ 'stop', 'start' ],
 };
+
 
 " }}}
