@@ -33,6 +33,12 @@ Write your perl omni completion extensions
 Perl omni completion plugin is extensible, you can extend completion rules by
 simple regular expressions.
 
+
+Development
+===========
+
+Please feel free to ask commit bit of this. just drop me a line. :-)
+
 Author
 ======
 
