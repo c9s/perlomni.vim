@@ -604,7 +604,7 @@ endf
 fun! s:scanFunctionFromList(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('grep-pattern.pl ' . buffile . ' ''^\s*sub\s+(\w+)'' | sort | uniq '),"\n")
+    return split(system('grep-pattern.pl ' . buffile . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
 endf
 
 fun! s:scanFunctionFromClass(class)
@@ -625,7 +625,7 @@ fun! s:scanFunctionFromClass(class)
     if strlen(classfile) == 0
         return [ ]
     endif
-    return split(system('grep-pattern.pl ' . classfile . ' ''^\s*sub\s+(\w+)'' | sort | uniq '),"\n")
+    return split(system('grep-pattern.pl ' . classfile . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
 endf
 " echo s:scanFunctionFromClass('Jifty::DBI::Record')
 
