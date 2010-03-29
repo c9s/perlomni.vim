@@ -126,16 +126,13 @@ fun! s:grepBufferList(pattern)
     let lines = split(bufferlist,"\n")
     let files = [ ]
     for line in lines
-        let [bufid,buftype,bufname,errr,nr] = split(line)
-        let bufname = substitute(bufname,'"$','','')
-        let bufname = substitute(bufname,'^"','','')
-        if bufname =~ a:pattern
-            cal add(files,bufname)
+        let buffile = matchstr( line , '"\S\+"' )
+        if buffile =~ a:pattern
+            cal add(files,buffile)
         endif
     endfor
     return files
 endf
-" echo s:grepBufferList('\.vim$')
 
 " main completion function
 " b:context  : whole current line
