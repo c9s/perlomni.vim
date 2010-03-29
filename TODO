@@ -1,10 +1,10 @@
 # vim:fdm=expr:fdl=1:foldexpr=getline(v\:lnum)=~'^=='?'>1'\:getline(v\:lnum)[0]=~'[*x(]'?'>2'\:getline(v\:lnum)=~'^--'?'<2'\:'='
 
-* support moose accessor completion
-
 * support moose type constraint completion
-
-x support object method completion (variable look backward search in a range)
 * support for class::accessor::fast accessor completion (with r,w attribute)
-* add makefile.pl to declare util perl scripts dependencies.
-* some of part code is depending other scripts, fix this.
+* grouping rule 
+    * to be able to disable/enable specified group (extension)
+* template declare completion extension
+* jifty dbi completion
+* dbix::class completion
+
