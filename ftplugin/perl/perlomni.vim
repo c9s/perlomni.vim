@@ -42,6 +42,7 @@ fun! SetCacheNS(ns,key,value)
     endif
     let key = a:ns . "_" . a:key
     let g:perlomni_cache[ key ] = a:value
+    return a:value
 endf
 " }}}
 
@@ -524,6 +525,11 @@ endf
 " echo s:scanObjectVariableLines([])
 
 fun! s:scanObjectVariableFile(file)
+    let l:cache = GetCacheNS('objvar_', a:file)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
+
     let list = split(system('grep-objvar.pl ' . expand(a:file) . ' '),"\n") 
     let b:objvarMapping = { }
     for item in list
@@ -534,9 +540,10 @@ fun! s:scanObjectVariableFile(file)
             let b:objvarMapping[ varname ] = [ classname ]
         endif
     endfor
-    return b:objvarMapping
+    return SetCacheNS('objvar_',a:file,b:objvarMapping)
 endf
 " echo s:scanObjectVariableFile( expand('~/git/bps/jifty-dbi/lib/Jifty/DBI/Collection.pm') )
+
 
 fun! s:scanHashVariable(lines)
     let buffile = tempname()
