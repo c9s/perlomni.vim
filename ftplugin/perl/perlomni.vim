@@ -133,6 +133,7 @@ fun! s:grepBufferList(pattern)
     endfor
     return files
 endf
+" echo s:grepBufferList('\.pm$')
 
 " main completion function
 " b:context  : whole current line
