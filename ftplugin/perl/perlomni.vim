@@ -1,4 +1,4 @@
-" vim:fdm=marker:sw=4:et:
+" vim:fdm=marker:sw=4:et:fdl=0:
 "
 " Plugin:  perlomni.vim
 " Author:  Cornelius
@@ -8,6 +8,7 @@ let s:debug_flag = 0
 runtime 'plugin/perlomni-data.vim'
 runtime 'plugin/perlomni-util.vim'
 
+" Warning {{{
 if ! executable('grep-objvar.pl')
             \ && ! executable('grep-pattern.pl')
     echo "Please add ~/.vim/bin to your PATH env variable."
@@ -22,8 +23,8 @@ if ! executable('grep-objvar.pl')
     echo ""
     finish
 endif
-
-
+" }}}
+" Cache Function. {{{
 fun! GetCacheNS(ns,key)
     if ! g:perlomni_use_cache
         return 0
@@ -42,20 +43,7 @@ fun! SetCacheNS(ns,key,value)
     let key = a:ns . "_" . a:key
     let g:perlomni_cache[ key ] = a:value
 endf
-
-" unlet g:perlomni_cache
-" cal SetCacheNS('class', 'zz', "String" )
-" let cache = GetCacheNS('class','zz')
-" ech cache
-" 
-" if type(cache) == type(0)
-"     unlet cache
-" endif
-" 
-
-
-
-
+" }}}
 
 " XXX:
 fun! s:FindBaseClasses(file)
@@ -339,7 +327,7 @@ fun! s:CompClassFunction(base,context)
 
     let funclist = s:scanFunctionFromClass(class)
     let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-    " cal SetCacheNS('classfunc',class.a:base,result)
+    cal SetCacheNS('classfunc',class.a:base,result)
     return result
 endf
 
@@ -511,20 +499,11 @@ fun! s:getSubScopeLines(nr)
 endf
 " }}}
 " SCANNING FUNCTIONS {{{
-
-" XXX:
-fun! s:findClass(path)
+fun! s:scanClass(path)
     let l:files = split(glob(a:path . '/**'))
     cal filter(l:files, 'v:val =~ "\.pm$"')
-    let result = [ ]
-    for file in l:files 
-        echo file
-        echo strlen(a:path)
-        " cal add(result , strpart(file,strlen(a:path) )
-        let xx = strpart(file,strlen(a:path) )
-        cal add(result,xx)
-    endfor
-    return result
+    cal map(l:files, 'strpart(v:val,strlen(a:path))')
+    return l:files
 endf
 
 fun! s:scanObjectVariableLines(lines)
