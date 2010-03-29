@@ -1,6 +1,6 @@
 
 NAME=perl-completion.vim
-VERSION=2.1
+VERSION=2.2
 DIRS=ftplugin plugin bin
 
 bundle-deps:
