@@ -33,8 +33,9 @@ Write your perl omni completion extensions
 Perl omni completion plugin is extensible, you can extend completion rules by
 simple regular expressions.
 
+your omni completion extension should put in ~/.vim/after/ftplugin/perl/what-ever.vim.
 
-API Functions:
+## API Functions
 
 **AddPerlOmniRule(rule)**, for example:
 
@@ -43,7 +44,7 @@ API Functions:
         \'backward': '[''"]\?\w*$' , 
         \'comp': function('s:CompMooseIs') } )
 
-* Cache Function
+### Cache Functions
 
 **GetCacheNS(ns,key)**
 
