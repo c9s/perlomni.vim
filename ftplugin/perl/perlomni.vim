@@ -507,6 +507,22 @@ fun! s:getSubScopeLines(nr)
 endf
 " }}}
 " SCANNING FUNCTIONS {{{
+
+" XXX:
+fun! s:findClass(path)
+    let l:files = split(glob(a:path . '/**'))
+    cal filter(l:files, 'v:val =~ "\.pm$"')
+    let result = [ ]
+    for file in l:files 
+        echo file
+        echo strlen(a:path)
+        " cal add(result , strpart(file,strlen(a:path) )
+        let xx = strpart(file,strlen(a:path) )
+        cal add(result,xx)
+    endfor
+    return result
+endf
+
 fun! s:scanObjectVariableLines(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
@@ -583,8 +599,10 @@ fun! s:scanFunctionFromClass(class)
     let paths = split(&path,',')
 
     " FOR DEBUG
-    let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
+    " let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
     let filepath = substitute(a:class,'::','/','g') . '.pm'
+    cal insert(paths,'lib')
+
     let classfile = ''
     for path in paths
         if filereadable( path . '/' . filepath ) 
@@ -659,6 +677,7 @@ my $obj = new Jifty::Web;
 
 " complete class methods
 Jifty::DBI::Record->
+Jifty->
 
 " complete built-in function
 seekdir splice 
@@ -687,6 +706,7 @@ $var->
 " smart object method completion 2
 my $var = Jifty::DBI->new;
 $var->
+
 
 my %hash = ( );
 my @array = ( );
