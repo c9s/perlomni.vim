@@ -287,23 +287,40 @@ fun! s:CompFunction(base,context)
 endf
 
 fun! s:CompVariable(base,context)
+    let l:cache = GetCacheNS('variables',a:base)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
+
     let lines = getline(1,'$')
     let variables = s:scanVariable(getline(1,'$'))
     cal extend( variables , s:scanArrayVariable(getline(1,'$')))
     cal extend( variables , s:scanHashVariable(getline(1,'$')))
-    return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    let result = filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    return SetCacheNS('variables',a:base,result)
 endf
 
 fun! s:CompArrayVariable(base,context)
+    let l:cache = GetCacheNS('arrayvar',a:base)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
+
     let lines = getline(1,'$')
     let variables = s:scanArrayVariable(getline(1,'$'))
-    return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    let result = filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    return SetCacheNS('arrayvar',a:base,result)
 endf
 
 fun! s:CompHashVariable(base,context)
+    let l:cache = GetCacheNS('hashvar',a:base)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
     let lines = getline(1,'$')
     let variables = s:scanHashVariable(getline(1,'$'))
-    return filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    let result = filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    return SetCacheNS('hashvar',a:base,result)
 endf
 
 fun! s:CompBufferFunction(base,context)
@@ -315,40 +332,44 @@ fun! s:CompBufferFunction(base,context)
     let lines = getline(1,'$')
     let funclist = s:scanFunctionFromList(getline(1,'$'))
     let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-    cal SetCacheNS('classfunc',a:base.bufnr('%'),result)
-    return result
+    return SetCacheNS('classfunc',a:base.bufnr('%'),result)
 endf
 
 fun! s:CompClassFunction(base,context)
     let class = substitute(a:context,'->$','','')
-    let l:cache = GetCacheNS('classfunc',class.a:base)
+    let l:cache = GetCacheNS('classfunc',class.'_'.a:base)
     if type(l:cache) != type(0)
         return l:cache
     endif
-
     let funclist = s:scanFunctionFromClass(class)
     let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-    cal SetCacheNS('classfunc',class.a:base,result)
-    return result
+    return SetCacheNS('classfunc',class.'_'.a:base,result)
 endf
 
 fun! s:CompPodHeaders(base,context)
     let pods = [ 'head1' , 'head2' , 'head3' , 'begin' , 'end', 'encoding' , 'cut' , 'pod' , 'over' , 'item' , 'for' , 'back' ]
-    " let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-    " cal SetCacheNS('classfunc',class.a:base,result)
     return s:StringFilter( pods , a:base )
 endf
 " echo s:CompPodHeaders('h','')
 
 fun! s:CompObjectMethod(base,context)
     let objvarname = substitute(a:context,'->$','','')
-    if ! exists('b:objvarMapping') || ! has_key(b:objvarMapping,objvarname)
+
+    let l:cache = GetCacheNS('objectMethod',objvarname.'_'.a:base)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
+
+    " Scan from current buffer
+    if ! exists('b:objvarMapping') 
+            \ || ! has_key(b:objvarMapping,objvarname)
         let minnr = line('.') - 10
         let minnr = minnr < 1 ? 1 : minnr
         let lines = getline( minnr , line('.') )
         cal s:scanObjectVariableLines(lines)
     endif
 
+    " Scan from other buffers
     if ! has_key(b:objvarMapping,objvarname)
         let bufferfiles = s:grepBufferList('\.p[ml]$')
         for file in bufferfiles
@@ -362,9 +383,10 @@ fun! s:CompObjectMethod(base,context)
         for class in classes
             cal extend(funclist,s:scanFunctionFromClass( class ))
         endfor
-        return filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+        let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+        return SetCacheNS('objectMethod',objvarname.'_'.a:base,result)
     endif
-    return [ ]
+    return funclist
 endf
 
 fun! s:CompClassName(base,context)
@@ -408,8 +430,7 @@ fun! s:CompClassName(base,context)
     else
         cal sort(result)
     endif
-    cal SetCacheNS('class',a:base,result)
-    return result
+    return SetCacheNS('class',a:base,result)
 endf
 
 fun! s:SortByLength(i1, i2)
@@ -525,10 +546,10 @@ endf
 " echo s:scanObjectVariableLines([])
 
 fun! s:scanObjectVariableFile(file)
-    let l:cache = GetCacheNS('objvar_', a:file)
-    if type(l:cache) != type(0)
-        return l:cache
-    endif
+"     let l:cache = GetCacheNS('objvar_', a:file)
+"     if type(l:cache) != type(0)
+"         return l:cache
+"     endif
 
     let list = split(system('grep-objvar.pl ' . expand(a:file) . ' '),"\n") 
     let b:objvarMapping = { }
@@ -540,7 +561,8 @@ fun! s:scanObjectVariableFile(file)
             let b:objvarMapping[ varname ] = [ classname ]
         endif
     endfor
-    return SetCacheNS('objvar_',a:file,b:objvarMapping)
+    return b:objvarMapping
+"     return SetCacheNS('objvar_',a:file,b:objvarMapping)
 endf
 " echo s:scanObjectVariableFile( expand('~/git/bps/jifty-dbi/lib/Jifty/DBI/Collection.pm') )
 
@@ -589,7 +611,7 @@ fun! s:scanFunctionFromClass(class)
     let paths = split(&path,',')
 
     " FOR DEBUG
-    " let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
+    let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
     let filepath = substitute(a:class,'::','/','g') . '.pm'
     cal insert(paths,'lib')
 
@@ -667,10 +689,12 @@ extends 'AAC::Pvoice';
 
 " module compeltion
 my $obj = new Jifty::Web;
+$obj->
 
 " complete class methods
 Jifty::DBI::Record->
 Jifty->
+Moose->
 
 " complete built-in function
 seekdir splice 
@@ -688,7 +712,7 @@ sub foo1 { }
 sub foo2 { }
 
 
-$self->testtest
+$self->
 
 \&fo
 
@@ -697,8 +721,8 @@ my $var = new Jifty;
 $var->
 
 " smart object method completion 2
-my $var = Jifty::DBI->new;
-$var->
+my $var3 = Jifty::DBI::Record->new;
+$var3->
 
 
 my %hash = ( );
@@ -707,7 +731,7 @@ my @array = ( );
 
 " complete variable
 $var1 $var2 $var3 $var_test $var__adfasdf
-$var__adfasd  $var1 
+$var__adfasd  $var1  $var_
 
 " moose complete
 
@@ -732,6 +756,6 @@ with 'Restartable' => {
 
 new Jifty::View::Declare::Page
 
-
+:AcpEnable
 
 " }}}
