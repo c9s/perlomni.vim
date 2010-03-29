@@ -1,7 +1,0 @@
-
-* grouping rule 
-    * to be able to disable/enable specified group (extension)
-* template declare completion extension
-* jifty dbi completion
-* dbix::class completion
-

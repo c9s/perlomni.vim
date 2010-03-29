@@ -44,10 +44,12 @@ fun! SetCacheNS(ns,key,value)
     let g:perlomni_cache[ key ] = a:value
     return a:value
 endf
+com! CacheNSClear  :unlet g:perlomni_cache
+
 " }}}
 
 fun! s:baseClassFromFile(file)
-    let l:cache = GetCacheNS('classfile_baseclass',a:file)
+    let l:cache = GetCacheNS('clsf_bcls',a:file)
     if type(l:cache) != type(0)
         return l:cache
     endif
@@ -60,7 +62,7 @@ fun! s:baseClassFromFile(file)
         let list[i] = substitute(list[i],'[,''"]',' ','g')
         cal extend( classes , split(list[i],'\s\+'))
     endfor
-    return SetCacheNS('classfile_baseclass',a:file,classes)
+    return SetCacheNS('clsf_bcls',a:file,classes)
 endf
 " echo s:baseClassFromFile(expand('%'))
 
@@ -74,7 +76,7 @@ endf
 " echo s:findBaseClass( 'Jifty::Record' )
 
 fun! s:locateClassFile(class)
-    let l:cache = GetCacheNS('classfile_path',a:class)
+    let l:cache = GetCacheNS('clsfpath',a:class)
     if type(l:cache) != type(0)
         return l:cache
     endif
@@ -88,12 +90,13 @@ fun! s:locateClassFile(class)
     cal insert(paths,'lib')
     for path in paths
         if filereadable( path . '/' . filepath ) 
-            return SetCacheNS('classfile_path',a:class,path .'/' . filepath)
+            return SetCacheNS('clsfpath',a:class,path .'/' . filepath)
         endif
     endfor
     return ''
 endf
 " echo s:locateClassFile('Jifty::DBI')
+" echo s:locateClassFile('No')
 
 fun! s:addRule(hash)
     cal add( s:rules , a:hash )
@@ -290,9 +293,6 @@ fun! s:CompMooseStatement(base,context)
 endf
 " }}}
 " PERL CORE OMNI COMPLETION {{{
-fun! s:CompFunction(base,context)
-    return s:StringFilter(g:p5bfunctions,a:base)
-endf
 
 fun! s:CompVariable(base,context)
     let l:cache = GetCacheNS('variables',a:base)
@@ -329,6 +329,11 @@ fun! s:CompHashVariable(base,context)
     let variables = s:scanHashVariable(getline(1,'$'))
     let result = filter( copy(variables),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
     return SetCacheNS('hashvar',a:base,result)
+endf
+
+" perl builtin functions
+fun! s:CompFunction(base,context)
+    return s:StringFilter(g:p5bfunctions,a:base)
 endf
 
 fun! s:CompBufferFunction(base,context)
@@ -396,8 +401,8 @@ fun! s:CompObjectMethod(base,context)
     let funclist = [ ]
     if has_key(b:objvarMapping,objvarname)
         let classes = b:objvarMapping[ objvarname ]
-        for class in classes
-            cal extend(funclist,s:scanFunctionFromClass( class ))
+        for cls in classes
+            cal extend(funclist,s:scanFunctionFromClass( cls ))
         endfor
         let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
         return SetCacheNS('objectMethod',objvarname.'_'.a:base,result)
@@ -623,12 +628,46 @@ fun! s:scanFunctionFromList(lines)
     return split(system('grep-pattern.pl ' . buffile . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
 endf
 
+fun! s:scanFunctionFromSingleClassFile(file)
+    return split(system('grep-pattern.pl ' . a:file . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
+endf
+
 fun! s:scanFunctionFromClass(class)
     let classfile = s:locateClassFile(a:class)
     return classfile == '' ? [ ] :
-        \ split(system('grep-pattern.pl ' . classfile . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
+        \ extend( s:scanFunctionFromSingleClassFile(classfile), 
+            \ s:scanFunctionFromBaseClassFile(classfile) )
 endf
 " echo s:scanFunctionFromClass('Jifty::DBI::Record')
+
+" scan functions from file and parent classes.
+fun! s:scanFunctionFromBaseClassFile(file)
+    if ! filereadable( a:file )
+        return [ ]
+    endif
+
+    let l:funcs = s:scanFunctionFromSingleClassFile(a:file)
+"     echo 'sub:' . a:file
+    let classes = s:baseClassFromFile(a:file)
+    for cls in classes
+
+        let l:cache = GetCacheNS('classfile_funcs',cls)
+        if type(l:cache) != type(0)
+            cal extend(l:funcs,l:cache)
+            continue
+        endif
+
+        let clsfile = s:locateClassFile(cls)
+        if clsfile != ''
+            let bfuncs = s:scanFunctionFromBaseClassFile( clsfile )
+            cal SetCacheNS('classfile_funcs',cls,bfuncs)
+            cal extend( l:funcs , bfuncs )
+        endif
+    endfor
+    return l:funcs
+endf
+" let fs = s:scanFunctionFromBaseClassFile(expand('%'))
+" echo len(fs)
 
 " }}}
 " RULES {{{
@@ -686,7 +725,6 @@ finish
 " SAMPLES {{{
 
 extends 'Moose::Meta::Attribute';
-extends 'AAC::Pvoice';
 use base qw(App::CLI);
 
 " module compeltion
@@ -725,6 +763,10 @@ $var->
 " smart object method completion 2
 my $var3 = Jifty::DBI::Record->new;
 $var3->
+
+
+my $mo = Moose->new;
+$mo->
 
 
 my %hash = ( );
