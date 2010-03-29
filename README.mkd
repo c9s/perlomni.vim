@@ -34,10 +34,35 @@ Perl omni completion plugin is extensible, you can extend completion rules by
 simple regular expressions.
 
 
+API Functions:
+
+**AddPerlOmniRule(rule)**, for example:
+
+    cal AddPerlOmniRule({ 'only':1, 'head': '^has\s\+\w\+' , 
+        \'context': '\s\+is\s*=>\s*$'  , 
+        \'backward': '[''"]\?\w*$' , 
+        \'comp': function('s:CompMooseIs') } )
+
+* Cache Function
+
+**GetCacheNS(ns,key)**
+
+    ns: cache namespace
+    key:  cache key
+
+**SetCacheNS(ns,key,value)**
+
+    ns: cache namespace
+    key:  cache key
+    value:  cache value
+
+
+
 Development
 ===========
 
 Please feel free to ask commit bit of this. just drop me a line. :-)
+
 
 Author
 ======
