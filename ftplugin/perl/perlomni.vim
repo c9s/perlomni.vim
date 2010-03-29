@@ -376,21 +376,16 @@ fun! s:CompClassFunction(base,context)
     return SetCacheNS('classfunc',class.'_'.a:base,result)
 endf
 
-fun! s:CompPodHeaders(base,context)
-    let pods = [ 'head1' , 'head2' , 'head3' , 'begin' , 'end', 'encoding' , 'cut' , 'pod' , 'over' , 'item' , 'for' , 'back' ]
-    return s:StringFilter( pods , a:base )
-endf
-" echo s:CompPodHeaders('h','')
 
 fun! s:CompObjectMethod(base,context)
-    let objvarname = substitute(a:context,'->$','','')
-
+    let objvarname = matchstr(a:context,'\$\w\+\(->$\)\@=')
     let l:cache = GetCacheNS('objectMethod',objvarname.'_'.a:base)
     if type(l:cache) != type(0)
         return l:cache
     endif
 
     " Scan from current buffer
+    " echo 'scan from current buffer' | sleep 100ms
     if ! exists('b:objvarMapping') 
             \ || ! has_key(b:objvarMapping,objvarname)
         let minnr = line('.') - 10
@@ -400,6 +395,7 @@ fun! s:CompObjectMethod(base,context)
     endif
 
     " Scan from other buffers
+    " echo 'scan from other buffer' | sleep 100ms
     if ! has_key(b:objvarMapping,objvarname)
         let bufferfiles = s:grepBufferList('\.p[ml]$')
         for file in bufferfiles
@@ -407,10 +403,13 @@ fun! s:CompObjectMethod(base,context)
         endfor
     endif
 
+    " echo 'scan functions' | sleep 100ms
     let funclist = [ ]
     if has_key(b:objvarMapping,objvarname)
         let classes = b:objvarMapping[ objvarname ]
         for cls in classes
+            echo objvarname . '=>' . cls
+            sleep 100ms
             cal extend(funclist,s:scanFunctionFromClass( cls ))
         endfor
         let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
@@ -418,6 +417,10 @@ fun! s:CompObjectMethod(base,context)
     endif
     return funclist
 endf
+" let b:objvarMapping = {  }
+" let b:objvarMapping[ '$cgi'  ] = ['CGI']
+" echo s:CompObjectMethod( '' , '$cgi->' )
+" sleep 1
 
 fun! s:CompClassName(base,context)
     let cache = GetCacheNS('class',a:base)
@@ -466,6 +469,14 @@ endf
 fun! s:SortByLength(i1, i2)
     return strlen(a:i1) == strlen(a:i2) ? 0 : strlen(a:i1) > strlen(a:i2) ? 1 : -1
 endfunc
+
+
+fun! s:CompPodHeaders(base,context)
+    let pods = [ 'head1' , 'head2' , 'head3' , 'begin' , 'end', 'encoding' , 'cut' , 'pod' , 'over' , 'item' , 'for' , 'back' ]
+    return s:StringFilter( pods , a:base )
+endf
+
+" echo s:CompPodHeaders('h','')
 
 fun! s:CompQString(base,context)
     let lines = getline(1,'$')
@@ -648,6 +659,8 @@ fun! s:scanFunctionFromClass(class)
             \ s:scanFunctionFromBaseClassFile(classfile) )
 endf
 " echo s:scanFunctionFromClass('Jifty::DBI::Record')
+" echo s:scanFunctionFromClass('CGI')
+" sleep 1
 
 " scan functions from file and parent classes.
 fun! s:scanFunctionFromBaseClassFile(file)
