@@ -126,9 +126,9 @@ fun! s:grepBufferList(pattern)
     let lines = split(bufferlist,"\n")
     let files = [ ]
     for line in lines
-        let buffile = matchstr( line , '"\S\+"' )
+        let buffile = matchstr( line , '\("\)\@<=\S\+\("\)\@=' )
         if buffile =~ a:pattern
-            cal add(files,buffile)
+            cal add(files,expand(buffile))
         endif
     endfor
     return files
