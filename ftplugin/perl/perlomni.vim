@@ -402,11 +402,11 @@ fun! s:CompClassName(base,context)
 "                 cal remove(parts,-1)
 "             endwhile
 "         endfor
-        if g:perlomni_sort_class_by_lenth
-            cal sort(result,'s:SortByLength')
-        else
-            cal sort(result)
-        endif
+    endif
+    if g:perlomni_sort_class_by_lenth
+        cal sort(result,'s:SortByLength')
+    else
+        cal sort(result)
     endif
     cal SetCacheNS('class',a:base,result)
     return result
