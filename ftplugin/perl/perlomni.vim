@@ -343,7 +343,13 @@ fun! s:CompClassFunction(base,context)
     return result
 endf
 
-
+fun! s:CompPodHeaders(base,context)
+    let pods = [ 'head1' , 'head2' , 'head3' , 'begin' , 'end', 'encoding' , 'cut' , 'pod' , 'over' , 'item' , 'for' , 'back' ]
+    " let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
+    " cal SetCacheNS('classfunc',class.a:base,result)
+    return s:StringFilter( pods , a:base )
+endf
+" echo s:CompPodHeaders('h','')
 
 fun! s:CompObjectMethod(base,context)
     let objvarname = substitute(a:context,'->$','','')
@@ -629,12 +635,14 @@ cal s:addRule({ 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': 
 cal s:addRule({ 'context': '^\s*$', 'backward': '\w\+$', 'comp':function('s:CompMooseStatement')})
 " }}}
 " Core Completion Rules {{{
+cal s:addRule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function('s:CompPodHeaders') })
 
 " class name completion
 cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^extends\s\+''$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^use \(base\|parent\)\s\+$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+shift;', 'comp': [ ' = shift;' ] })
+
 
 " variable completion
 cal s:addRule({'only':1, 'context': '\s*\$$' , 'backward': '\<\w\+$' , 'comp': function('s:CompVariable') })
@@ -648,6 +656,7 @@ cal s:addRule({'context': '\(->\|\$\)\@<!$', 'backward': '\<\w\+$' , 'comp': fun
 cal s:addRule({'context': '\$self->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  , 'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
+
 
 
 " string completion
@@ -736,5 +745,7 @@ with 'Restartable' => {
 # 'string' , 'string \' escpae'
 
 new Jifty::View::Declare::Page
+
+
 
 " }}}
