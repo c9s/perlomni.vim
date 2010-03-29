@@ -46,15 +46,13 @@ fun! SetCacheNS(ns,key,value)
 endf
 " }}}
 
-
-fun! s:findBaseClass(class)
-    let file = s:locateClassFile(a:class)
-    if file == '' 
-        return []
+fun! s:baseClassFromFile(file)
+    let l:cache = GetCacheNS('classfile_baseclass',a:file)
+    if type(l:cache) != type(0)
+        return l:cache
     endif
-    let list = split(system('grep-pattern.pl ' . file . 
+    let list = split(system('grep-pattern.pl ' . a:file . 
         \ ' ''^(?:use\s+(?:base|parent)\s+|extends\s+)(.*);''' ),"\n")
-
     let classes = [ ]
     for i in range(0,len(list)-1)
         let list[i] = substitute(list[i],'^\(qw[(''"\[]\|(\|[''"]\)\s*','','')
@@ -62,70 +60,41 @@ fun! s:findBaseClass(class)
         let list[i] = substitute(list[i],'[,''"]',' ','g')
         cal extend( classes , split(list[i],'\s\+'))
     endfor
-    return classes
+    return SetCacheNS('classfile_baseclass',a:file,classes)
+endf
+" echo s:baseClassFromFile(expand('%'))
+
+fun! s:findBaseClass(class)
+    let file = s:locateClassFile(a:class)
+    if file == '' 
+        return []
+    endif
+    return s:baseClassFromFile(file)
 endf
 " echo s:findBaseClass( 'Jifty::Record' )
 
 fun! s:locateClassFile(class)
+    let l:cache = GetCacheNS('classfile_path',a:class)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
+
     let paths = split(&path,',')
     " FOR DEBUG
     if &filetype != 'perl'
         let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
     endif
-
     let filepath = substitute(a:class,'::','/','g') . '.pm'
     cal insert(paths,'lib')
     for path in paths
         if filereadable( path . '/' . filepath ) 
-            return path .'/' . filepath
+            return SetCacheNS('classfile_path',a:class,path .'/' . filepath)
         endif
     endfor
     return ''
 endf
+" echo s:locateClassFile('Jifty::DBI')
 
-
-
-" XXX:
-fun! s:FindBaseClasses(file)
-    let script = 'find_base_classes.pl'
-    if ! executable( script )
-        echoerr 'can not execute ' . script
-        return [ ]
-    endif
-    let out = system( script . ' ' . a:file  )
-    if v:shell_error
-        echoerr 'shell error:' . v:shell_error
-        echoerr 'syntax error can not parse file:' . a:file 
-        return []
-    endif
-    let classes = [ ]
-    for l in split(out,"\n") 
-        let [class,refer,path] = split(l,' ',1)  " 1 for keepempty
-        call add(classes,[class,refer,path])
-    endfor
-    return classes
-endf
-fun! s:parseBaseClassFunction(filepath)
-    let base_classes = s:FindBaseClasses( a:filepath ) 
-    let result = [ ]
-    for [class,class_refer,path] in base_classes
-        let class_comp = { 'class': class , 'refer': class_refer , 'functions': [ ] }
-        let class_comp.functions = s:GrepFileFunctions( path )
-        call add( result , class_comp )
-    endfor
-    return result
-endf
-
-fun! s:ClassCompAdd(base,b)
-    for f in a:b.functions
-        if f =~ '^'.a:base
-            cal add(b:comp_items,{ 'word': f , 'kind': 'f' , 'menu': a:b.class } )
-        endif
-    endfor
-endf
-
-
-" ===================================
 fun! s:addRule(hash)
     cal add( s:rules , a:hash )
 endf
