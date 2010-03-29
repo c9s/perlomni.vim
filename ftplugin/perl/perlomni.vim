@@ -46,6 +46,45 @@ fun! SetCacheNS(ns,key,value)
 endf
 " }}}
 
+
+fun! s:findBaseClass(class)
+    let file = s:locateClassFile(a:class)
+    if file == '' 
+        return []
+    endif
+    let list = split(system('grep-pattern.pl ' . file . 
+        \ ' ''^(?:use\s+(?:base|parent)\s+|extends\s+)(.*);''' ),"\n")
+
+    let classes = [ ]
+    for i in range(0,len(list)-1)
+        let list[i] = substitute(list[i],'^\(qw[(''"\[]\|(\|[''"]\)\s*','','')
+        let list[i] = substitute(list[i],'[)''"]$','','')
+        let list[i] = substitute(list[i],'[,''"]',' ','g')
+        cal extend( classes , split(list[i],'\s\+'))
+    endfor
+    return classes
+endf
+" echo s:findBaseClass( 'Jifty::Record' )
+
+fun! s:locateClassFile(class)
+    let paths = split(&path,',')
+    " FOR DEBUG
+    if &filetype != 'perl'
+        let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
+    endif
+
+    let filepath = substitute(a:class,'::','/','g') . '.pm'
+    cal insert(paths,'lib')
+    for path in paths
+        if filereadable( path . '/' . filepath ) 
+            return path .'/' . filepath
+        endif
+    endfor
+    return ''
+endf
+
+
+
 " XXX:
 fun! s:FindBaseClasses(file)
     let script = 'find_base_classes.pl'
@@ -143,7 +182,7 @@ fun! s:parseParagraphHead(fromLine)
     return b:paragraph_head
 endf
 
-fun! PerlComplete2(findstart, base)
+fun! PerlComplete(findstart, base)
     let line = getline('.')
     let lnum = line('.')
     let start = col('.') - 1
@@ -616,24 +655,9 @@ fun! s:scanFunctionFromList(lines)
 endf
 
 fun! s:scanFunctionFromClass(class)
-    let paths = split(&path,',')
-
-    " FOR DEBUG
-    let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
-    let filepath = substitute(a:class,'::','/','g') . '.pm'
-    cal insert(paths,'lib')
-
-    let classfile = ''
-    for path in paths
-        if filereadable( path . '/' . filepath ) 
-            let classfile = path .'/' . filepath
-            break
-        endif
-    endfor
-    if strlen(classfile) == 0
-        return [ ]
-    endif
-    return split(system('grep-pattern.pl ' . classfile . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
+    let classfile = s:locateClassFile(a:class)
+    return classfile == '' ? [ ] :
+        \ split(system('grep-pattern.pl ' . classfile . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
 endf
 " echo s:scanFunctionFromClass('Jifty::DBI::Record')
 
@@ -682,7 +706,7 @@ cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp'
 
 
 " }}}
-setlocal omnifunc=PerlComplete2
+setlocal omnifunc=PerlComplete
 
 " Configurations
 cal s:defopt('perlomni_max_class_length',100)
@@ -694,6 +718,7 @@ finish
 
 extends 'Moose::Meta::Attribute';
 extends 'AAC::Pvoice';
+use base qw(App::CLI);
 
 " module compeltion
 my $obj = new Jifty::Web;
