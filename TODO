@@ -1,10 +1,11 @@
 # vim:fdm=expr:fdl=1:foldexpr=getline(v\:lnum)=~'^=='?'>1'\:getline(v\:lnum)[0]=~'[*x(]'?'>2'\:getline(v\:lnum)=~'^--'?'<2'\:'='
-
+x base class function completion
 * support moose type constraint completion
 * support for class::accessor::fast accessor completion (with r,w attribute)
 * grouping rule 
-    * to be able to disable/enable specified group (extension)
+    :to be able to disable/enable specified group (extension)
 * template declare completion extension
 * jifty dbi completion
 * dbix::class completion
-
+* class variable completion
+* export function completion
