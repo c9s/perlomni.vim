@@ -329,7 +329,6 @@ fun! s:CompBufferFunction(base,context)
         return l:cache
     endif
 
-
     let l:cache2 = GetCacheNS('buf_func_all',expand('%'))
     if type(l:cache2) != type(0)
         let funclist = l:cache2
@@ -347,7 +346,10 @@ fun! s:CompClassFunction(base,context)
     if type(l:cache) != type(0)
         return l:cache
     endif
-    let funclist = s:scanFunctionFromClass(class)
+
+    let l:cache2 = GetCacheNS('class_func_all',class)
+    let funclist = type(l:cache2) != type(0) ? l:cache2 : SetCacheNS('class_func_all',class,s:scanFunctionFromClass(class))
+
     let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
     return SetCacheNS('classfunc',class.'_'.a:base,result)
 endf
