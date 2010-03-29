@@ -24,6 +24,14 @@ if ! executable('grep-objvar.pl')
     finish
 endif
 " }}}
+
+" Public API {{{
+
+" Rule
+fun! AddPerlOmniRule(hash)
+    cal s:addRule(a:hash)
+endf
+
 " Cache Function. {{{
 fun! GetCacheNS(ns,key)
     if ! g:perlomni_use_cache
@@ -48,6 +56,9 @@ com! CacheNSClear  :unlet g:perlomni_cache
 
 " }}}
 
+" }}}
+
+" BASE CLASS UTILS {{{
 fun! s:baseClassFromFile(file)
     let l:cache = GetCacheNS('clsf_bcls',a:file)
     if type(l:cache) != type(0)
@@ -74,6 +85,7 @@ fun! s:findBaseClass(class)
     return s:baseClassFromFile(file)
 endf
 " echo s:findBaseClass( 'Jifty::Record' )
+" }}}
 
 fun! s:locateClassFile(class)
     let l:cache = GetCacheNS('clsfpath',a:class)
@@ -102,9 +114,6 @@ fun! s:addRule(hash)
     cal add( s:rules , a:hash )
 endf
 
-fun! g:p5cRule(hash)
-    cal s:addRule(a:hash)
-endf
 
 fun! s:debug(name,var)
     if s:debug_flag
