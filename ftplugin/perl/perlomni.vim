@@ -324,15 +324,21 @@ fun! s:CompHashVariable(base,context)
 endf
 
 fun! s:CompBufferFunction(base,context)
-    let l:cache = GetCacheNS('bufferfunction',a:base.bufnr('%'))
+    let l:cache = GetCacheNS('buf_func',a:base.expand('%'))
     if type(l:cache) != type(0)
         return l:cache
     endif
 
-    let lines = getline(1,'$')
-    let funclist = s:scanFunctionFromList(getline(1,'$'))
+
+    let l:cache2 = GetCacheNS('buf_func_all',expand('%'))
+    if type(l:cache2) != type(0)
+        let funclist = l:cache2
+    else
+        let lines = getline(1,'$')
+        let funclist = SetCacheNS('buf_func_all',expand('%'),s:scanFunctionFromList(getline(1,'$')))
+    endif
     let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-    return SetCacheNS('classfunc',a:base.bufnr('%'),result)
+    return SetCacheNS('buf_func',a:base.expand('%'),result)
 endf
 
 fun! s:CompClassFunction(base,context)
