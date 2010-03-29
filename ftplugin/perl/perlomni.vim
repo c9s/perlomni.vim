@@ -94,10 +94,10 @@ fun! s:locateClassFile(class)
     endif
 
     let paths = split(&path,',')
-    " FOR DEBUG
-    if &filetype != 'perl'
+    if g:perlomni_use_perlinc || &filetype != 'perl'
         let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
     endif
+
     let filepath = substitute(a:class,'::','/','g') . '.pm'
     cal insert(paths,'lib')
     for path in paths
@@ -740,9 +740,12 @@ setlocal omnifunc=PerlComplete
 cal s:defopt('perlomni_max_class_length',100)
 cal s:defopt('perlomni_sort_class_by_lenth',0)
 cal s:defopt('perlomni_use_cache',1)
+cal s:defopt('perlomni_use_perlinc',1)
 
 finish
 " SAMPLES {{{
+
+
 
 extends 'Moose::Meta::Attribute';
 use base qw(App::CLI);
@@ -750,7 +753,6 @@ use base qw(App::CLI);
 " module compeltion
 my $obj = new Jifty::Web;
 $obj->
-
 
 my $cgi = new CGI;
 print $cgi->
