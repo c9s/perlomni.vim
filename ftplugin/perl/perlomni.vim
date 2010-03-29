@@ -408,8 +408,6 @@ fun! s:CompObjectMethod(base,context)
     if has_key(b:objvarMapping,objvarname)
         let classes = b:objvarMapping[ objvarname ]
         for cls in classes
-            echo objvarname . '=>' . cls
-            sleep 100ms
             cal extend(funclist,s:scanFunctionFromClass( cls ))
         endfor
         let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
@@ -752,6 +750,10 @@ use base qw(App::CLI);
 " module compeltion
 my $obj = new Jifty::Web;
 $obj->
+
+
+my $cgi = new CGI;
+print $cgi->
 
 " complete class methods
 Jifty::DBI::Record->
