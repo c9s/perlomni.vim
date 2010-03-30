@@ -24,8 +24,9 @@ please make sure you've enable filetype plugin your `.vimrc`:
 Usage
 =====
 
-In insert mode , press C-x C-o to emit omnicompletion.
+In insert mode , press C-x C-o to emit omni completion.
 
+P.S. The completion works in terminal vim is faster than gvim/MacVim.
 
 Write your perl omni completion extensions
 =========================================
