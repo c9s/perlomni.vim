@@ -570,6 +570,10 @@ endf
 " }}}
 " SCANNING FUNCTIONS {{{
 fun! s:scanClass(path)
+    let l:cache = GetCacheNS('classpath', a:path)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
     if ! isdirectory(a:path)
         return [ ]
     endif
@@ -577,7 +581,7 @@ fun! s:scanClass(path)
     cal filter(l:files, 'v:val =~ "\.pm$"')
     cal map(l:files, 'strpart(v:val,strlen(a:path)+1,strlen(v:val)-strlen(a:path)-4)')
     cal map(l:files, 'substitute(v:val,''/'',"::","g")')
-    return l:files
+    return SetCacheNS('classpath',a:path,l:files)
 endf
 " echo s:scanClass(expand('~/aiink/aiink/lib'))
 
@@ -751,7 +755,7 @@ cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'    , 'backward': '\w*$' , 'comp'
 setlocal omnifunc=PerlComplete
 
 " Configurations
-cal s:defopt('perlomni_max_class_length',100)
+cal s:defopt('perlomni_max_class_length',40)
 cal s:defopt('perlomni_sort_class_by_lenth',0)
 cal s:defopt('perlomni_use_cache',1)
 cal s:defopt('perlomni_use_perlinc',1)
