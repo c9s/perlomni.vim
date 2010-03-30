@@ -363,7 +363,7 @@ fun! s:CompBufferFunction(base,context)
 endf
 
 fun! s:CompClassFunction(base,context)
-    let class = substitute(a:context,'->$','','')
+    let class = matchstr(a:context,'[a-zA-Z0-9:]\+\(->)\\@='
     let l:cache = GetCacheNS('classfunc',class.'_'.a:base)
     if type(l:cache) != type(0)
         return l:cache
