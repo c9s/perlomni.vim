@@ -292,6 +292,7 @@ fun! s:CompMooseAttribute(base,context)
                 \ 'weak_ref' , 'lazy' , 'auto_deref' , 'trigger', 
                 \ 'handles' , 'traits' , 'builder' , 'clearer',
                 \ 'predicate' , 'lazy_build', 'initializer', 'documentation' ]
+    cal map(values,'v:val . " => "')
     return s:StringFilter(values,a:base)
 endf
 
