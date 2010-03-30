@@ -722,6 +722,7 @@ cal s:addRule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function(
 " class name completion
 cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^extends\s\+''$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
+cal s:addRule({'only':1, 'context': '\s$' , 'backward': '\<[A-Za-z0-9_]*::[a-zA-Z0-9:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+shift;', 'comp': [ ' = shift;' ] })
 
 
