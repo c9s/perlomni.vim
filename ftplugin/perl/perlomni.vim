@@ -288,7 +288,10 @@ fun! s:CompMooseAttribute(base,context)
     let values = [ 'default' , 'is' , 'isa' , 
                 \ 'label' , 'predicate', 'metaclass', 'label', 
                 \ 'expires_after', 
-                \ 'refresh_with' , 'required' ]
+                \ 'refresh_with' , 'required' , 'coerce' , 'does' , 'required',
+                \ 'weak_ref' , 'lazy' , 'auto_deref' , 'trigger', 
+                \ 'handles' , 'traits' , 'builder' , 'clearer',
+                \ 'predicate' , 'lazy_build', 'initializer', 'documentation' ]
     return s:StringFilter(values,a:base)
 endf
 
@@ -297,7 +300,10 @@ fun! s:CompMooseRoleAttr(base,context)
     return s:StringFilter(attrs,a:base)
 endf
 fun! s:CompMooseStatement(base,context)
-    let sts = [ 'extends' , 'after' , 'before', 'has' , 'requires' , 'with' , 'override' , 'method' ]
+    let sts = [ 
+        \'extends' , 'after' , 'before', 'has' , 
+        \'requires' , 'with' , 'override' , 'method',
+        \'super', 'around', 'inner', 'augment', 'confess' , 'blessed' ]
     return s:StringFilter(sts,a:base)
 endf
 " }}}
