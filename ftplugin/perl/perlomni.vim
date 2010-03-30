@@ -438,6 +438,8 @@ fun! s:CompClassName(base,context)
         let classnames = CPANParseSourceList( sourcefile )
         let g:cpan_mod_cache = classnames
     endif
+    cal extend(classnames, s:scanClass('lib'))
+
     let result = s:StringFilter(classnames,a:base)
 
     if len(result) > g:perlomni_max_class_length 
@@ -561,11 +563,16 @@ endf
 " }}}
 " SCANNING FUNCTIONS {{{
 fun! s:scanClass(path)
+    if ! isdirectory(a:path)
+        return [ ]
+    endif
     let l:files = split(glob(a:path . '/**'))
     cal filter(l:files, 'v:val =~ "\.pm$"')
-    cal map(l:files, 'strpart(v:val,strlen(a:path))')
+    cal map(l:files, 'strpart(v:val,strlen(a:path)+1,strlen(v:val)-strlen(a:path)-4)')
+    cal map(l:files, 'substitute(v:val,''/'',"::","g")')
     return l:files
 endf
+" echo s:scanClass(expand('~/aiink/aiink/lib'))
 
 fun! s:scanObjectVariableLines(lines)
     let buffile = tempname()
@@ -695,6 +702,7 @@ endf
 "
 " Moose Completion Rules {{{
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '[''"]\?\w*$' , 'comp': function('s:CompMooseIs') } )
+" cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '[''"]\?[a-zA-Z0-9_:\[\]]*$' , 'comp': function('s:CompMooseIsa') } )
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '[''"]\?\S*$' , 'comp': function('s:CompMooseIsa') } )
 
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
@@ -809,7 +817,7 @@ has url => (
     metaclass => 'Labeled',
     is        => 'rw',
     label     => "The site's URL",
-    isa => 'AFS::Object::Server',
+    isa => 'AFS::Object',
 );
 
 " role
