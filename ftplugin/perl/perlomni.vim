@@ -31,7 +31,7 @@ fun! s:system(...)
         for a in a:000
             if len(cmd) | let cmd .= ' ' | endif
             if a =~ '[\^*]' | let a = '"'.a.'"' | endif
-            if a =~ ' ' && a !~ '"'
+            if a =~ ' ' && a !~ '[^\]"'
                 if a =~ '\^'
                     let a = '^"' . substitute(a, '\^', '\\^', 'g') . '^"'
                 else
