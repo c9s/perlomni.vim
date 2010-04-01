@@ -500,7 +500,7 @@ fun! s:CompClassName(base,context)
     endif
     return SetCacheNS('class',a:base,result)
 endf
-echo s:CompClassName('Moose::','')
+" echo s:CompClassName('Moose::','')
 
 fun! s:SortByLength(i1, i2)
     return strlen(a:i1) == strlen(a:i2) ? 0 : strlen(a:i1) > strlen(a:i2) ? 1 : -1
@@ -531,9 +531,9 @@ fun! CPANParseSourceList(file)
   endif
   let args = []
   if executable('zcat')
-    let args = ['zcat', a:file, '|' , 'grep', '-v', ':', '|', 'cut', '-d" "', '-f1-', '>', g:cpan_mod_cachef]
+    let args = ['zcat', a:file, '|' , 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
   else
-    let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-v', ':', '|', 'cut', '-d" "', '-f1-', '>', g:cpan_mod_cachef]
+    let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
   endif
   call call(function("s:system"), args)
   if v:shell_error 
@@ -869,7 +869,7 @@ with 'Restartable' => {
 
 # 'string' , 'string \' escpae'
 
-new Jifty::View::Declare::Page
+
 
 :AcpEnable
 
