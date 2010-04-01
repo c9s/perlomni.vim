@@ -526,7 +526,7 @@ fun! CPANParseSourceList(file)
   else
     let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-v', '^[0-9a-zA-Z-]*:', '|', 'cut', '-d', '-f1', '>', g:cpan_mod_cachef]
   endif
-  echo s:system( args )
+  echo call(function("s:system"), args)
   if v:shell_error 
     echoerr v:shell_error
   endif
