@@ -37,10 +37,7 @@ fun! s:system(...)
     else
         for a in a:000
             if len(cmd) | let cmd .= ' ' | endif
-            let a .= substitute(a, "'", "\\'", 'g')
-            let a .= substitute(a, '"', '\"', 'g')
-            if a =~ ' ' | let a = "'".a."'" | endif
-            let cmd .= a
+            let cmd .= shellescape(a)
         endfor
     endif
     return system(cmd)
