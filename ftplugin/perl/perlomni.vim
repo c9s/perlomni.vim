@@ -42,7 +42,7 @@ fun! s:system(...)
         endfor
     else
         for a in a:000
-            if len(cmd) | let cmd .= ' ' | endif
+            if strlen(cmd) | let cmd .= ' ' | endif
             let cmd .= shellescape(a)
         endfor
     endif
