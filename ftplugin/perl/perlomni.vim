@@ -23,7 +23,7 @@ fun! s:system(...)
     let cmd = ''
     if has('win32')
         let ext = toupper(substitute(a:1, '^.*\.', '.', ''))
-	    if !len(filter(split($PATHEXT, ';'), 'toupper(v:val) == ext'))
+        if !len(filter(split($PATHEXT, ';'), 'toupper(v:val) == ext'))
             if ext == '.PL' && executable('perl') | let cmd = 'perl' | endif
             if ext == '.PY' && executable('python') | let cmd = 'python' | endif
             if ext == '.RB' && executable('ruby') | let cmd = 'ruby' | endif
@@ -31,7 +31,13 @@ fun! s:system(...)
         for a in a:000
             if len(cmd) | let cmd .= ' ' | endif
             if a =~ '[\^*]' | let a = '"'.a.'"' | endif
-            if a =~ '[ ]' | let a = '^"' . substitute(a, '\^', '\\^', 'g') . '^"' | endif
+            if a =~ ' ' && a !~ '"'
+                if a =~ '\^'
+                    let a = '^"' . substitute(a, '\^', '\\^', 'g') . '^"'
+                else
+                    let a = '"' . a . '"'
+                endif
+            endif
             let cmd .= a
         endfor
     else
@@ -522,11 +528,11 @@ fun! CPANParseSourceList(file)
   endif
   let args = []
   if executable('zcat')
-    let args = ['zcat', a:file, '|' , 'grep', '-v', '^[0-9a-zA-Z-]*:', '|', 'cut', '-d', '-f1', '>', g:cpan_mod_cachef]
+    let args = ['zcat', a:file, '|' , 'grep', '-v', ':', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
   else
-    let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-v', '^[0-9a-zA-Z-]*:', '|', 'cut', '-d', '-f1', '>', g:cpan_mod_cachef]
+    let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-v', ':', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
   endif
-  echo call(function("s:system"), args)
+  call call(function("s:system"), args)
   if v:shell_error 
     echoerr v:shell_error
   endif
