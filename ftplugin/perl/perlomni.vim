@@ -43,7 +43,7 @@ fun! s:system(...)
     else
         for a in a:000
             if len(cmd) | let cmd .= ' ' | endif
-            if substitute(substitute(a, '\\.', '', 'g'), '\([''"]\).* .*\1', '', 'g') =~ ' ' || (a != '|' && a =~ '|') | let a = shellescape(a) | endif
+            if substitute(substitute(a, '\\.', '', 'g'), '\([''"]\).* .*\1', '', 'g') =~ ' ' || (a != '|' && a =~ '|') || a =~ '[()]' | let a = shellescape(a) | endif
             let cmd .= a
         endfor
     endif
