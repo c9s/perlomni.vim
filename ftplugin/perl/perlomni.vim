@@ -8,22 +8,45 @@ let s:debug_flag = 0
 runtime 'plugin/perlomni-data.vim'
 runtime 'plugin/perlomni-util.vim'
 
+let s:vimbin = globpath(&rtp, 'bin/')
+
 " Warning {{{
-if ! executable('grep-objvar.pl')
-            \ && ! executable('grep-pattern.pl')
-    echo "Please add ~/.vim/bin to your PATH env variable."
-    echo "And make them executable."
-    echo "For example:"
-    echo ""
-    echo "  export PATH=~/.vim/bin/:$PATH"
-    echo ""
-    echo "And Run:"
-    echo ""
-    echo "  $ chmod +x ~/.vim/bin/grep-*.pl "
-    echo ""
+if ! filereadable(s:vimbin.'grep-objvar.pl')
+            \ && ! filereadable(s:vimbin.'grep-pattern.pl')
+    echo "Please install scripts to ~/.vim/bin"
     finish
 endif
 " }}}
+
+" Wrapped system() Function. {{{
+fun! s:system(...)
+    let cmd = ''
+    if has('win32')
+        let ext = toupper(substitute(a:1, '^.*\.', '.', ''))
+	    if !len(filter(split($PATHEXT, ';'), 'toupper(v:val) == ext'))
+            if ext == '.PL' && executable('perl') | let cmd = 'perl' | endif
+            if ext == '.PY' && executable('python') | let cmd = 'python' | endif
+            if ext == '.RB' && executable('ruby') | let cmd = 'ruby' | endif
+        endif
+        for a in a:000
+            if len(cmd) | let cmd .= ' ' | endif
+            if a =~ '[\^*]' | let a = '"'.a.'"' | endif
+            if a =~ '[ ]' | let a = '^"' . substitute(a, '\^', '\\^', 'g') . '^"' | endif
+            let cmd .= a
+        endfor
+    else
+        for a in a:000
+            if len(cmd) | let cmd .= ' ' | endif
+            let a .= substitute(a, "'", "\\'", 'g')
+            let a .= substitute(a, '"', '\"', 'g')
+            if a =~ ' ' | let a = "'".a."'" | endif
+            let cmd .= arg
+        endfor
+    endif
+    return system(cmd)
+endfunction
+" }}}
+
 
 " Public API {{{
 
@@ -64,8 +87,8 @@ fun! s:baseClassFromFile(file)
     if type(l:cache) != type(0)
         return l:cache
     endif
-    let list = split(system('grep-pattern.pl ' . a:file . 
-        \ ' ''^(?:use\s+(?:base|parent)\s+|extends\s+)(.*);''' ),"\n")
+    let list = split(s:system(s:vimbin.'grep-pattern.pl', a:file, 
+        \ '^(?:use\s+(?:base|parent)\s+|extends\s+)(.*);'),"\n")
     let classes = [ ]
     for i in range(0,len(list)-1)
         let list[i] = substitute(list[i],'^\(qw[(''"\[]\|(\|[''"]\)\s*','','')
@@ -95,7 +118,7 @@ fun! s:locateClassFile(class)
 
     let paths = split(&path,',')
     if g:perlomni_use_perlinc || &filetype != 'perl'
-        let paths = split( system("perl -e 'print join(\",\",@INC)'") ,',')
+        let paths = split( s:system('perl', '-e', 'print join(\",\",@INC)') ,',')
     endif
 
     let filepath = substitute(a:class,'::','/','g') . '.pm'
@@ -500,12 +523,13 @@ fun! CPANParseSourceList(file)
   if ! exists('g:cpan_mod_cachef')
     let g:cpan_mod_cachef = expand('~/.vim-cpan-module-cache')
   endif
+  let args = []
   if executable('zcat')
-    let cmd = 'zcat ' . a:file . " | grep -v '^[0-9a-zA-Z-]*: '  | cut -d' ' -f1 > " . g:cpan_mod_cachef
+    let args = ['zcat', a:file, '|' , 'grep', '-v', '^[0-9a-zA-Z-]*:', '|', 'cut', '-d', '-f1', '>', g:cpan_mod_cachef]
   else
-    let cmd = 'cat ' . a:file . " | gunzip | grep -v '^[0-9a-zA-Z-]*: '  | cut -d' ' -f1 > " . g:cpan_mod_cachef
+    let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-v', '^[0-9a-zA-Z-]*:', '|', 'cut', '-d', '-f1', '>', g:cpan_mod_cachef]
   endif
-  echo system( cmd )
+  echo s:system( args )
   if v:shell_error 
     echoerr v:shell_error
   endif
@@ -531,7 +555,7 @@ fun! CPANSourceLists()
   endfor
 
   " not found
-  cal s:echo("CPAN source list not found.")
+  echo "CPAN source list not found."
   let f = expand('~/.cpan/sources/modules/02packages.details.txt.gz')
   " XXX: refactor me !!
   if ! isdirectory( expand('~/.cpan') )
@@ -546,7 +570,7 @@ fun! CPANSourceLists()
     cal mkdir( expand('~/.cpan/sources/modules') )
   endif
 
-  cal s:echo("Downloading CPAN source list.")
+  echo "Downloading CPAN source list."
   if executable('curl')
     exec '!curl http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -o ' . f
     return f
@@ -588,7 +612,7 @@ endf
 fun! s:scanObjectVariableLines(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    let varlist = split(system('grep-objvar.pl ' . buffile . ' '),"\n") 
+    let varlist = split(s:system(s:vimbin.'grep-objvar.pl', buffile),"\n") 
     let b:objvarMapping = { }
     for item in varlist
         let [varname,classname] = split(item)
@@ -608,7 +632,7 @@ fun! s:scanObjectVariableFile(file)
 "         return l:cache
 "     endif
 
-    let list = split(system('grep-objvar.pl ' . expand(a:file) . ' '),"\n") 
+    let list = split(s:system(s:vimbin.'grep-objvar.pl', expand(a:file)),"\n") 
     let b:objvarMapping = { }
     for item in list
         let [varname,classname] = split(item)
@@ -627,7 +651,7 @@ endf
 fun! s:scanHashVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('grep-pattern.pl ' . buffile . ' ''%(\w+)'' | sort | uniq '),"\n") 
+    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '%(\w+)', '|', 'sort', '|', 'uniq'),"\n") 
 endf
 " echo s:scanHashVariable( getline(1,'$') )
 
@@ -635,37 +659,37 @@ endf
 fun! s:scanQString(lines)
     let buffile = tempname()
     cal writefile( a:lines, buffile)
-    let cmd = system('grep-pattern.pl '.buffile.' ''[''](.*?)(?<!\\)['']''')
+    let cmd = s:system(s:vimbin.'grep-pattern.pl', buffile, '[''](.*?)(?<!\\)['']')
     return split( cmd ,"\n")
 endf
 
 fun! s:scanQQString(lines)
     let buffile = tempname()
     cal writefile( a:lines, buffile)
-    return split(system('grep-pattern.pl '.buffile.' ''["](.*?)(?<!\\)["]'''),"\n")
+    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '["](.*?)(?<!\\)["]'),"\n")
 endf
 " echo s:scanQQStringFile('testfile')
 
 fun! s:scanArrayVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('grep-pattern.pl ' . buffile . ' ''@(\w+)'' | sort | uniq '),"\n") 
+    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '@(\w+)', '|', 'sort', '|', 'uniq'),"\n")
 endf
 
 fun! s:scanVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('grep-pattern.pl ' . buffile . ' ''\$(\w+)'' | sort | uniq '),"\n") 
+    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '\$(\w+)', '|', 'sort', '|', 'uniq'),"\n") 
 endf
 
 fun! s:scanFunctionFromList(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(system('grep-pattern.pl ' . buffile . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
+    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '^\s*(?:sub|has)\s+(\w+)', '|', 'sort', '|', 'uniq'),"\n")
 endf
 
 fun! s:scanFunctionFromSingleClassFile(file)
-    return split(system('grep-pattern.pl ' . a:file . ' ''^\s*(?:sub|has)\s+(\w+)'' | sort | uniq '),"\n")
+    return split(s:system(s:vimbin.'grep-pattern.pl', a:file, '^\s*(?:sub|has)\s+(\w+)', '|', 'sort', '|', 'uniq'),"\n")
 endf
 
 fun! s:scanFunctionFromClass(class)
@@ -688,7 +712,7 @@ fun! s:scanFunctionFromBaseClassFile(file)
 "     echo 'sub:' . a:file
     let classes = s:baseClassFromFile(a:file)
     for cls in classes
-
+        unlet! l:cache
         let l:cache = GetCacheNS('classfile_funcs',cls)
         if type(l:cache) != type(0)
             cal extend(l:funcs,l:cache)
