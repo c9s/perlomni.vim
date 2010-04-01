@@ -40,7 +40,7 @@ fun! s:system(...)
             let a .= substitute(a, "'", "\\'", 'g')
             let a .= substitute(a, '"', '\"', 'g')
             if a =~ ' ' | let a = "'".a."'" | endif
-            let cmd .= arg
+            let cmd .= a
         endfor
     endif
     return system(cmd)
