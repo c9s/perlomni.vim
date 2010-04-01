@@ -42,10 +42,12 @@ fun! s:system(...)
         endfor
     else
         for a in a:000
-            if strlen(cmd) | let cmd .= ' ' | endif
-            let cmd .= shellescape(a)
+            if len(cmd) | let cmd .= ' ' | endif
+            if substitute(substitute(a, '\\.', '', 'g'), '\([''"]\).* .*\1', '', 'g') =~ ' ' || (a != '|' && a =~ '|') || a =~ '[()]' | let a = shellescape(a) | endif
+            let cmd .= a
         endfor
     endif
+    let g:hoge = cmd
     return system(cmd)
 endfunction
 " }}}
@@ -121,7 +123,7 @@ fun! s:locateClassFile(class)
 
     let paths = split(&path,',')
     if g:perlomni_use_perlinc || &filetype != 'perl'
-        let paths = split( s:system('perl', '-e', 'print join(\",\",@INC)') ,',')
+        let paths = split( s:system('perl', '-e', 'print join(",",@INC)') ,',')
     endif
 
     let filepath = substitute(a:class,'::','/','g') . '.pm'
