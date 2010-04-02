@@ -34,24 +34,16 @@ fun! s:system(...)
         endif
         for a in a:000
             if len(cmd) | let cmd .= ' ' | endif
-            if a =~ '[\^*]' | let a = '"'.a.'"' | endif
-            if a =~ ' ' && a !~ '[^\]"'
-                if a =~ '\^'
-                    let a = '^"' . substitute(a, '\^', '\\^', 'g') . '^"'
-                else
-                    let a = '"' . a . '"'
-                endif
-            endif
+            if substitute(substitute(a, '\\.', '', 'g'), '\([''"]\).*\1', '', 'g') =~ ' ' || (a != '|' && a =~ '|') || a =~ '[()]' | let a = '"' . substitute(a, '"', '"""', 'g') . '"' | endif
             let cmd .= a
         endfor
     else
         for a in a:000
             if len(cmd) | let cmd .= ' ' | endif
-            if substitute(substitute(a, '\\.', '', 'g'), '\([''"]\).* .*\1', '', 'g') =~ ' ' || (a != '|' && a =~ '|') || a =~ '[()]' | let a = shellescape(a) | endif
+            if substitute(substitute(a, '\\.', '', 'g'), '\([''"]\).*\1', '', 'g') =~ ' ' || (a != '|' && a =~ '|') || a =~ '[()]' | let a = shellescape(a) | endif
             let cmd .= a
         endfor
     endif
-    let g:hoge = cmd
     return system(cmd)
 endfunction
 " }}}

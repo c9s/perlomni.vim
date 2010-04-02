@@ -126,7 +126,7 @@ VERSION=0.1
 DIRS=`ls -1F | grep / | sed -e 's/\///'`
 
 # Runtime path to install:
-VIMRUNTIME=~/.vim
+VIMRUNTIME=~/vim
 
 # Other Files to be added:
 FILES=`ls -1 | grep '.vim$$'`
@@ -157,7 +157,7 @@ MKFILES=Makefile `ls -1 | grep '.mk$$'`
 
 
 CONFIG_FILE=config.mk
--include ~/.vimauthor.mk
+include $(HOME)/.vimauthor.mk
 -include $(CONFIG_FILE)
 
 # }}}
