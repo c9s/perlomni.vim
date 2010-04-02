@@ -765,7 +765,7 @@ cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+s
 
 
 " variable completion
-cal s:addRule({'only':1, 'context': '\s*\$$' , 'backward': '\<\U\w\+$' , 'comp': function('s:CompVariable') })
+cal s:addRule({'only':1, 'context': '\s*\$$' , 'backward': '\<\U\w*$' , 'comp': function('s:CompVariable') })
 cal s:addRule({'only':1, 'context': '%$', 'backward': '\<\U\w\+$', 'comp': function('s:CompHashVariable') })
 cal s:addRule({'only':1, 'context': '@$', 'backward': '\<\U\w\+$', 'comp': function('s:CompArrayVariable') })
 
@@ -846,6 +846,9 @@ $mo->
 
 my %hash = ( );
 my @array = ( );
+
+%
+@
 
 
 " complete variable
