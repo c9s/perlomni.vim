@@ -24,9 +24,13 @@ fun! s:system(...)
     if has('win32')
         let ext = toupper(substitute(a:1, '^.*\.', '.', ''))
         if !len(filter(split($PATHEXT, ';'), 'toupper(v:val) == ext'))
-            if ext == '.PL' && executable('perl') | let cmd = 'perl' | endif
-            if ext == '.PY' && executable('python') | let cmd = 'python' | endif
-            if ext == '.RB' && executable('ruby') | let cmd = 'ruby' | endif
+            if ext == '.PL' && executable('perl') 
+                let cmd = 'perl'
+            elseif ext == '.PY' && executable('python') 
+                let cmd = 'python' 
+            elseif ext == '.RB' && executable('ruby') 
+                let cmd = 'ruby' 
+            endif
         endif
         for a in a:000
             if len(cmd) | let cmd .= ' ' | endif
