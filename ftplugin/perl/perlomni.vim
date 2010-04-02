@@ -525,15 +525,17 @@ fun! CPANParseSourceList(file)
   if ! exists('g:cpan_mod_cachef')
     let g:cpan_mod_cachef = expand('~/.vim-cpan-module-cache')
   endif
-  let args = []
-  if executable('zcat')
-    let args = ['zcat', a:file, '|' , 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
-  else
-    let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
-  endif
-  call call(function("s:system"), args)
-  if v:shell_error 
-    echoerr v:shell_error
+  if !filereadable(g:cpan_mod_cachef) || getftime(g:cpan_mod_cachef) < getftime(a:file)
+    let args = []
+    if executable('zcat')
+      let args = ['zcat', a:file, '|' , 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
+    else
+      let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
+    endif
+    call call(function("s:system"), args)
+    if v:shell_error 
+      echoerr v:shell_error
+    endif
   endif
   return readfile( g:cpan_mod_cachef )
 endf
