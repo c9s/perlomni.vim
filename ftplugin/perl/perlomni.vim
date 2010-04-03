@@ -781,10 +781,11 @@ cal s:addRule({ 'context': '^\s*$', 'backward': '\w\+$', 'comp':function('s:Comp
 " Core Completion Rules {{{
 cal s:addRule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function('s:CompPodHeaders') })
 
+
 " class name completion
 cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^extends\s\+[''"]$' , 'backward': '\<\u[A-Za-z0-9_:]*$', 'comp': function('s:CompClassName') } )
-cal s:addRule({'only':1, 'context': '\s\+$' , 'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 'comp': function('s:CompClassName') } )
+cal s:addRule({'context': '^sub\s\+'              , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompCurrentBaseFunction') })
 cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+shift;', 'comp': [ ' = shift;' ] })
 
 
@@ -798,9 +799,11 @@ cal s:addRule({'only':1, 'context': '&$', 'backward': '\<\U\w\+$', 'comp': funct
 " function completion
 cal s:addRule({'context': '\(->\|\$\)\@<!$',        'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
 cal s:addRule({'context': '\$\(self\|class\)->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
-cal s:addRule({'context': '^sub\s\+'              , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompCurrentBaseFunction') })
 cal s:addRule({'context': '\$\w\+->$'  ,            'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'  ,  'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
+
+
+cal s:addRule({'context': '$' , 'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 'comp': function('s:CompClassName') } )
 
 " string completion
 " cal s:addRule({'context': '\s''', 'backward': '\_[^'']*$' , 'comp': function('s:CompQString') })
@@ -900,7 +903,6 @@ with 'Restartable' => {
 };
 
 # 'string' , 'string \' escpae'
-
 
 
 :AcpEnable
