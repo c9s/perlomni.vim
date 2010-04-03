@@ -111,6 +111,24 @@ endf
 " echo s:findBaseClass( 'Jifty::Record' )
 " }}}
 
+fun! s:findCurrentClassBaseClass()
+    let all_mods = [ ]
+    for i in range( line('.') , 0 , -1 )
+        let line = getline(i)
+        if line =~ '^package\s\+'
+            break
+        elseif line =~ '^\(use\s\+\(base\|parent\)\|extends\)\s\+'
+            let args =  matchstr( line , 
+                        \ '\(^\(use\s\+\(base\|parent\)\|extends\)\s\+\(qw\)\=[''"(\[]\)\@<=\_.*\([\)\]''"]\s*;\)\@=' )
+            let args = substitute( args  , '\_[ ]\+' , ' ' , 'g' )
+            let mods = split(  args , '\s' )
+            cal extend( all_mods , mods )
+        endif
+    endfor
+    return all_mods
+endf
+
+
 fun! s:locateClassFile(class)
     let l:cache = GetCacheNS('clsfpath',a:class)
     if type(l:cache) != type(0)
@@ -375,6 +393,18 @@ endf
 fun! s:CompFunction(base,context)
     return s:StringFilter(g:p5bfunctions,a:base)
 endf
+
+fun! s:CompCurrentBaseFunction(base,context)
+    let all_mods = s:findCurrentClassBaseClass()
+    let funcs = [ ] 
+    for mod in all_mods 
+        let sublist = s:scanFunctionFromClass(mod)
+        cal extend(funcs,sublist)
+    endfor
+    return funcs
+endf
+" echo s:CompCurrentBaseFunction('','$self->')
+" sleep 1
 
 fun! s:CompBufferFunction(base,context)
     let l:cache = GetCacheNS('buf_func',a:base.expand('%'))
@@ -768,6 +798,7 @@ cal s:addRule({'only':1, 'context': '&$', 'backward': '\<\U\w\+$', 'comp': funct
 " function completion
 cal s:addRule({'context': '\(->\|\$\)\@<!$',        'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
 cal s:addRule({'context': '\$\(self\|class\)->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
+cal s:addRule({'context': '^sub\s\+'              , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompCurrentBaseFunction') })
 cal s:addRule({'context': '\$\w\+->$'  ,            'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'  ,  'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
 
@@ -789,7 +820,7 @@ cal s:defopt('perlomni_use_perlinc',1)
 finish
 " SAMPLES {{{
 
-
+package Orz;
 extends 'Moose::Meta::Attribute';
 use base qw(App::CLI);
 
