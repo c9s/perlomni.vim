@@ -785,7 +785,7 @@ cal s:addRule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function(
 " class name completion
 cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
 cal s:addRule({'only':1, 'context': '^extends\s\+[''"]$' , 'backward': '\<\u[A-Za-z0-9_:]*$', 'comp': function('s:CompClassName') } )
-cal s:addRule({'context': '^sub\s\+'              , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompCurrentBaseFunction') })
+cal s:addRule({'context': '^\s*\(sub\|method\)\s\+'              , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompCurrentBaseFunction') })
 cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+shift;', 'comp': [ ' = shift;' ] })
 
 
@@ -826,6 +826,9 @@ finish
 package Orz;
 extends 'Moose::Meta::Attribute';
 use base qw(App::CLI);
+
+sub _
+
 
 " module compeltion
 my $obj = new Jifty::Web;
