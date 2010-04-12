@@ -57,10 +57,10 @@ fun! AddPerlOmniRule(hash)
 endf
 
 " Cache Function. {{{
-let last_cache_ts = localtime()
+let s:last_cache_ts = localtime()
 fun! GetCacheNS(ns,key)
-    if localtime() - last_cache_ts > g:perlomni_cache_expiry
-        let last_cache_ts = localtime()
+    if localtime() - s:last_cache_ts > g:perlomni_cache_expiry
+        let s:last_cache_ts = localtime()
         return 0
     endif
 
