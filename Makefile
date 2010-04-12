@@ -157,7 +157,7 @@ MKFILES=Makefile `ls -1 | grep '.mk$$'`
 
 
 CONFIG_FILE=config.mk
-include ~/.vimauthor.mk
+-include ~/.vimauthor.mk
 -include $(CONFIG_FILE)
 
 # }}}
