@@ -57,7 +57,13 @@ fun! AddPerlOmniRule(hash)
 endf
 
 " Cache Function. {{{
+let last_cache_ts = localtime()
 fun! GetCacheNS(ns,key)
+    if localtime() - last_cache_ts > g:perlomni_cache_expiry
+        let last_cache_ts = localtime()
+        return 0
+    endif
+
     if ! g:perlomni_use_cache
         return 0
     endif
@@ -815,6 +821,7 @@ cal s:addRule({'context': '$' , 'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 'comp': f
 setlocal omnifunc=PerlComplete
 
 " Configurations
+cal s:defopt('perlomni_cache_expiry',30)
 cal s:defopt('perlomni_max_class_length',40)
 cal s:defopt('perlomni_sort_class_by_lenth',0)
 cal s:defopt('perlomni_use_cache',1)
