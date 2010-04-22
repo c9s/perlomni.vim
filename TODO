@@ -9,3 +9,11 @@ x base class function completion
 * dbix::class completion
 * class variable completion
 * export function completion
+
+* support class method completion from 'isa', for example:
+
+        has handle =>
+            isa => 'DBI::Handle';
+
+        $self->handle->
+

@@ -794,7 +794,6 @@ cal s:addRule({'only':1, 'context': '^extends\s\+[''"]$' , 'backward': '\<\u[A-Z
 cal s:addRule({'context': '^\s*\(sub\|method\)\s\+'              , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompCurrentBaseFunction') })
 cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+shift;', 'comp': [ ' = shift;' ] })
 
-
 " variable completion
 cal s:addRule({'only':1, 'context': '\s*\$$' , 'backward': '\<\U\w*$' , 'comp': function('s:CompVariable') })
 cal s:addRule({'only':1, 'context': '%$', 'backward': '\<\U\w\+$', 'comp': function('s:CompHashVariable') })
