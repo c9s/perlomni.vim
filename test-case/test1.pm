@@ -72,6 +72,8 @@ has url => (
     is        => 'rw',
     label     => "The site's URL",
     isa => 'AFS::Object',
+    reader => '
+    writer => '
 );
 
 # role

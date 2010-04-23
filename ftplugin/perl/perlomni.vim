@@ -783,6 +783,7 @@ endf
 " Moose Completion Rules {{{
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '[''"]\?\w*$' , 'comp': function('s:CompMooseIs') } )
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '[''"]\?\S*$' , 'comp': function('s:CompMooseIsa') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+\(reader\|writer\)\s*=>\s*[''"]$' , 'backward': '\w*$', 'comp': function('s:CompBufferFunction') })
 
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
 cal s:addRule({ 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
@@ -811,7 +812,6 @@ cal s:addRule({'context': '\(->\|\$\)\@<!$',        'backward': '\<\w\+$' , 'com
 cal s:addRule({'context': '\$\(self\|class\)->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
 cal s:addRule({'context': '\$\w\+->$'  ,            'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
 cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'  ,  'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
-
 
 cal s:addRule({'context': '$' , 'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 'comp': function('s:CompClassName') } )
 
