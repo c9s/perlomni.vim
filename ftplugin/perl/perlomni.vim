@@ -301,6 +301,11 @@ fun! PerlComplete(findstart, base)
     else 
         return b:comps
     endif
+
+
+
+
+
 endf
 
 let s:rules = [ ]
