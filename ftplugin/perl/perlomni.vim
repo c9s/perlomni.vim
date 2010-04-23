@@ -782,7 +782,7 @@ endf
 "
 " Moose Completion Rules {{{
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '[''"]\?\w*$' , 'comp': function('s:CompMooseIs') } )
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+isa\s*=>\s*$' , 'backward': '[''"]\?\S*$' , 'comp': function('s:CompMooseIsa') } )
+cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+\(isa\|does\)\s*=>\s*$' , 'backward': '[''"]\?\S*$' , 'comp': function('s:CompMooseIsa') } )
 cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 
     \'context': '\s\+\(reader\|writer\|clearer\|predicate\|builder\)\s*=>\s*[''"]$' , 
     \'backward': '\w*$', 'comp': function('s:CompBufferFunction') })
