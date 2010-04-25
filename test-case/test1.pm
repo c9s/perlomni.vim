@@ -4,18 +4,18 @@ package Orz;
 extends 'Moose::Meta::Attribute';
 use base qw(App::CLI);
 
-sub _
+sub _cmd_map
 
 
 # module compeltion
 my $obj = new Jifty::Web;
-$obj->
+$obj->callerujj
 
 my $cgi = new CGI;
-print $cgi->
+print $cgi->AUTOLOAD
 
 # complete class methods
-Jifty::DBI::Record->
+Jifty::DBI::Record->__create
 Jifty->
 Moose->
 
@@ -35,7 +35,7 @@ sub foo1 { }
 sub foo2 { }
 
 
-$self->
+$self->url
 
 \&fo
 
@@ -69,10 +69,10 @@ $zzz
 
 has url => (
     metaclass => 'Labeled',
-    is        => 'rw',
+    is => 'wo'
     label     => "The site's URL",
     isa => 'AFS::Object',
-    reader => '
+    reader => 'url
     writer => '
 );
 

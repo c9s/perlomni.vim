@@ -53,7 +53,7 @@ endfunction
 
 " Rule
 fun! AddPerlOmniRule(hash)
-    cal s:addRule(a:hash)
+    cal s:rule(a:hash)
 endf
 
 " Cache Function. {{{
@@ -158,7 +158,7 @@ endf
 " echo s:locateClassFile('Jifty::DBI')
 " echo s:locateClassFile('No')
 
-fun! s:addRule(hash)
+fun! s:rule(hash)
     cal add( s:rules , a:hash )
 endf
 
@@ -781,44 +781,126 @@ endf
 " rules have head should be first matched , because of we get first backward position.
 "
 " Moose Completion Rules {{{
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+is\s*=>\s*$'  , 'backward': '[''"]\?\w*$' , 'comp': function('s:CompMooseIs') } )
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '\s\+\(isa\|does\)\s*=>\s*$' , 'backward': '[''"]\?\S*$' , 'comp': function('s:CompMooseIsa') } )
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 
+cal s:rule({ 
+    \'only':1, 
+    \'head': '^has\s\+\w\+' , 
+    \'context': '\s\+is\s*=>\s*$'  , 
+    \'backward': '[''"]\?\w*$' , 
+    \'comp': function('s:CompMooseIs') } )
+cal s:rule({ 
+    \'only':1, 
+    \'head': '^has\s\+\w\+' , 
+    \'context': '\s\+\(isa\|does\)\s*=>\s*$' , 
+    \'backward': '[''"]\?\S*$' , 
+    \'comp': function('s:CompMooseIsa') } )
+cal s:rule({ 'only':1, 'head': '^has\s\+\w\+' , 
     \'context': '\s\+\(reader\|writer\|clearer\|predicate\|builder\)\s*=>\s*[''"]$' , 
-    \'backward': '\w*$', 'comp': function('s:CompBufferFunction') })
+    \'backward': '\w*$', 
+    \'comp': function('s:CompBufferFunction') })
 
-cal s:addRule({ 'only':1, 'head': '^has\s\+\w\+' , 'context': '^\s*$' , 'backward': '\w*$', 'comp': function('s:CompMooseAttribute') } )
-cal s:addRule({ 'only':1, 'head': '^with\s\+', 'context': '^\s*-$', 'backward': '\w\+$', 'comp': function('s:CompMooseRoleAttr') } )
+cal s:rule({ 
+    \'only':1, 
+    \'head': '^has\s\+\w\+' , 
+    \'context': '^\s*$' , 
+    \'backward': '\w*$', 
+    \'comp': function('s:CompMooseAttribute') } )
 
-cal s:addRule({ 'context': '^\s*$', 'backward': '\w\+$', 'comp':function('s:CompMooseStatement')})
+cal s:rule({ 
+    \'only':1, 
+    \'head': '^with\s\+', 
+    \'context': '^\s*-$', 
+    \'backward': '\w\+$', 
+    \'comp': function('s:CompMooseRoleAttr') } )
+
+cal s:rule({ 
+    \'context': '^\s*$', 
+    \'backward': '\w\+$', 
+    \'comp':function('s:CompMooseStatement')})
+
 " }}}
 " Core Completion Rules {{{
-cal s:addRule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function('s:CompPodHeaders') })
+cal s:rule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function('s:CompPodHeaders') })
 
 
 " class name completion
-cal s:addRule({'only':1, 'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' , 'backward': '\<[A-Z][a-z0-9_:]*$', 'comp': function('s:CompClassName') } )
-cal s:addRule({'only':1, 'context': '^extends\s\+[''"]$' , 'backward': '\<\u[A-Za-z0-9_:]*$', 'comp': function('s:CompClassName') } )
-cal s:addRule({'context': '^\s*\(sub\|method\)\s\+'              , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompCurrentBaseFunction') })
-cal s:addRule({'only':1, 'context': '^\s*my\s\+\$self$' , 'backward': '\s*=\s\+shift;', 'comp': [ ' = shift;' ] })
+cal s:rule({
+    \'only':1, 
+    \'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' , 
+    \'backward': '\<[A-Z][a-z0-9_:]*$', 
+    \'comp': function('s:CompClassName') } )
+
+cal s:rule({
+    \'only':1, 
+    \'context': '^extends\s\+[''"]$' , 
+    \'backward': '\<\u[A-Za-z0-9_:]*$', 
+    \'comp': function('s:CompClassName') } )
+
+cal s:rule({
+    \'context': '^\s*\(sub\|method\)\s\+'              , 
+    \'backward': '\<\w\+$' , 
+    \'only':1 , 
+    \'comp': function('s:CompCurrentBaseFunction') })
+
+cal s:rule({
+    \'only':1, 
+    \'context': '^\s*my\s\+\$self$' , 
+    \'backward': '\s*=\s\+shift;', 
+    \'comp': [ ' = shift;' ] })
 
 " variable completion
-cal s:addRule({'only':1, 'context': '\s*\$$' , 'backward': '\<\U\w*$' , 'comp': function('s:CompVariable') })
-cal s:addRule({'only':1, 'context': '%$', 'backward': '\<\U\w\+$', 'comp': function('s:CompHashVariable') })
-cal s:addRule({'only':1, 'context': '@$', 'backward': '\<\U\w\+$', 'comp': function('s:CompArrayVariable') })
 
-cal s:addRule({'only':1, 'context': '&$', 'backward': '\<\U\w\+$', 'comp': function('s:CompBufferFunction') })
+cal s:rule({
+    \'only':1, 
+    \'context': '\s*\$$' , 
+    \'backward': '\<\U\w*$' , 
+    \'comp': function('s:CompVariable') })
+
+cal s:rule({
+    \'only':1, 
+    \'context': '%$', 
+    \'backward': '\<\U\w\+$', 
+    \'comp': function('s:CompHashVariable') })
+
+cal s:rule({
+    \'only':1, 
+    \'context': '@$', 
+    \'backward': '\<\U\w\+$', 
+    \'comp': function('s:CompArrayVariable') })
+
+cal s:rule({
+    \'only':1, 
+    \'context': '&$', 
+    \'backward': '\<\U\w\+$', 
+    \'comp': function('s:CompBufferFunction') })
 
 " function completion
-cal s:addRule({'context': '\(->\|\$\)\@<!$',        'backward': '\<\w\+$' , 'comp': function('s:CompFunction') })
-cal s:addRule({'context': '\$\(self\|class\)->$'  , 'backward': '\<\w\+$' , 'only':1 , 'comp': function('s:CompBufferFunction') })
-cal s:addRule({'context': '\$\w\+->$'  ,            'backward': '\<\w\+$' , 'comp': function('s:CompObjectMethod') })
-cal s:addRule({'context': '\<[a-zA-Z0-9:]\+->$'  ,  'backward': '\w*$' , 'comp': function('s:CompClassFunction') })
+cal s:rule({
+    \'context': '\(->\|\$\)\@<!$',        
+    \'backward': '\<\w\+$' , 
+    \'comp': function('s:CompFunction') })
 
-cal s:addRule({'context': '$' , 'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 'comp': function('s:CompClassName') } )
+cal s:rule({'context': '\$\(self\|class\)->$'  , 
+    \'backward': '\<\w\+$' , 
+    \'only':1 , 
+    \'comp': function('s:CompBufferFunction') })
+
+cal s:rule({
+    \'context': '\$\w\+->$'  ,            
+    \'backward': '\<\w\+$' , 
+    \'comp': function('s:CompObjectMethod') })
+
+cal s:rule({
+    \'context': '\<[a-zA-Z0-9:]\+->$'  ,  
+    \'backward': '\w*$' , 
+    \'comp': function('s:CompClassFunction') })
+
+cal s:rule({
+    \'context': '$' , 
+    \'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 
+    \'comp': function('s:CompClassName') } )
 
 " string completion
-" cal s:addRule({'context': '\s''', 'backward': '\_[^'']*$' , 'comp': function('s:CompQString') })
+" cal s:rule({'context': '\s''', 'backward': '\_[^'']*$' , 'comp': function('s:CompQString') })
 
 " }}}
 
