@@ -319,3 +319,16 @@ version:
 	@echo version - $(MAKEFILE_VERSION)
 
 # }}}
+akefile ; \
+	if [[ -n `which curl` ]]; then \
+		curl $$URL -o Makefile ; \
+	if [[ -n `which wget` ]]; then \
+		wget -c $$URL ; \
+	elif [[ -n `which fetch` ]]; then \
+		fetch $$URL ; \
+	fi
+
+version:
+	@echo version - $(MAKEFILE_VERSION)
+
+# }}}
