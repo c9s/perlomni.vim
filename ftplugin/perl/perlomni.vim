@@ -823,11 +823,18 @@ cal s:rule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function('s:
 
 
 " class name completion
+"  matches:
+"     new [ClassName]
+"     use [ClassName]
+"     use base qw(ClassName ...
+"     use base 'ClassName
+
 cal s:rule({
     \'only':1, 
     \'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' , 
     \'backward': '\<[A-Z][a-z0-9_:]*$', 
     \'comp': function('s:CompClassName') } )
+
 
 cal s:rule({
     \'only':1, 
