@@ -4,6 +4,14 @@ Screencast
 
 http://www.youtube.com/watch?v=hZ7871WcIv0
 
+
+Description
+===========
+
+perl-completion plugin supports basic perl completion and Moose / DBIx::Class completion.
+
+the rules could be easily extended. see ( ftplugin/perl/perlomni.vim )
+
 Install
 ========
 
