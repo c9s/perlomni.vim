@@ -114,6 +114,13 @@ fetch_github = \
 fetch_local = @cp -v $(1) $(2) \
 		; @echo $(2) >> .bundlefiles
 
+# 1: NAME , 2: URI
+dep_from_git = \
+		D=/tmp/$(1)-$$RANDOM ; git clone $(2) $$D ; cd $$D ; make install ; 
+
+dep_from_svn = \
+		D=/tmp/$(1)-$$RANDOM ; svn checkout $(2) $$D ; cd $$D ; make install ;
+
 # }}}
 # }}}
 # ======= DEFAULT CONFIG ======= {{{
@@ -155,6 +162,7 @@ MKFILES=Makefile `ls -1 | grep '.mk$$'`
 # 	  $(call fetch_url,[file url],[target path])
 # 	  $(call fetch_local,[from],[to])
 
+SHELL=bash
 
 CONFIG_FILE=config.mk
 -include ~/.vimauthor.mk
@@ -207,6 +215,7 @@ release:
 	fi
 
 pure-install:
+	@echo "Using Shell:" $(SHELL) 
 	@echo "Installing"
 	@if [[ -n "$(DIRS)" ]] ; then find $(DIRS) -type f | while read file ; do \
 			cp -v $$file $(VIMRUNTIME)/$$file ; done ; fi
@@ -307,19 +316,6 @@ clean-bundle-deps:
 update:
 	@echo "Updating Makefile..."
 	@URL=http://github.com/c9s/vim-makefile/raw/master/Makefile ; \
-	if [[ -n `which curl` ]]; then \
-		curl $$URL -o Makefile ; \
-	if [[ -n `which wget` ]]; then \
-		wget -c $$URL ; \
-	elif [[ -n `which fetch` ]]; then \
-		fetch $$URL ; \
-	fi
-
-version:
-	@echo version - $(MAKEFILE_VERSION)
-
-# }}}
-akefile ; \
 	if [[ -n `which curl` ]]; then \
 		curl $$URL -o Makefile ; \
 	if [[ -n `which wget` ]]; then \

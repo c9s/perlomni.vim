@@ -212,6 +212,12 @@ fun! s:parseParagraphHead(fromLine)
 endf
 
 fun! PerlComplete(findstart, base)
+
+    if ! exists('b:lines')
+        " max 200 lines , to '$' will be very slow
+        let b:lines = getline( 1, 200 )
+    endif
+
     let line = getline('.')
     let lnum = line('.')
     let start = col('.') - 1
@@ -231,6 +237,8 @@ fun! PerlComplete(findstart, base)
         let first_bwidx = -1
 
         for rule in s:rules
+
+
             let match = matchstr( b:lcontext , rule.backward )
             if strlen(match) > 0
                 let bwidx   = strridx( b:lcontext , match )
@@ -276,8 +284,27 @@ fun! PerlComplete(findstart, base)
             " echo string(rule.comp) . ' regexp: "' . rule.context . '" ' . "lcontext:'" .lefttext . "'" .  " basetext:'" .basetext . "'"
             " sleep 3
 
-            if ( has_key( rule ,'head') && b:paragraph_head =~ rule.head && lefttext =~ rule.context ) ||
-                    \ ( ! has_key(rule,'head') && lefttext =~ rule.context  )
+
+            if ( has_key( rule ,'head') 
+                    \ && b:paragraph_head =~ rule.head 
+                    \ && lefttext =~ rule.context ) 
+                \ || ( ! has_key(rule,'head') && lefttext =~ rule.context  )
+
+                if has_key( rule ,'contains' ) 
+                    let l:text = rule.contains
+                    let l:found = 0
+                    " check content
+                    for line in b:lines 
+                        if l:text =~ rule.contains 
+                            let l:found = 1
+                            break
+                        endif
+                    endfor
+                    if ! l:found 
+                        " next rule
+                        continue
+                    endif
+                endif
 
                 if type(rule.comp) == type(function('tr'))
                     cal extend(b:comps, call( rule.comp, [basetext,lefttext] ) )
@@ -780,6 +807,44 @@ endf
 " RULES {{{
 " rules have head should be first matched , because of we get first backward position.
 "
+
+" XXX: provide a dictinoary loader
+fun! s:DBIxCompMethod(base,context)
+    return s:StringFilter([ 
+        \ "table" , "table_class" , "add_columns" , 
+        \ "set_primary_key" , "has_many" ,
+        \ "many_to_many" , "belongs_to" , "add_columns" ,
+        \ "might_have" , 
+        \ "has_one",
+        \ "add_unique_constraint",
+        \ "resultset_class",
+        \ "load_namespaces",
+        \ "load_components",
+        \ "load_classes",
+        \ "resultset_attributes" , 
+        \ "result_source_instance" ,
+        \ "mk_group_accessors",
+        \ "storage"
+        \ ],a:base)
+endf
+
+
+" DBIx::Class::Core completion
+"   use contains to check file content, do complete dbix methods if and only
+"   if there is a DBIx::Class::Core
+"
+" because there is a rule take 'only' attribute, 
+" so the rest rules willn't be check.
+" for the reason , put the dbix completion rule before them.
+" will take a look later ... (I hope)
+cal s:rule({
+    \'context': '^__PACKAGE__->$',
+    \'contains': 'DBIx::Class::Core',
+    \'backward': '\w*$',
+    \'comp':    function('s:DBIxCompMethod')
+    \})
+
+
 " Moose Completion Rules {{{
 cal s:rule({ 
     \'only':1, 
@@ -905,6 +970,9 @@ cal s:rule({
     \'context': '$' , 
     \'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 
     \'comp': function('s:CompClassName') } )
+
+
+
 
 " string completion
 " cal s:rule({'context': '\s''', 'backward': '\_[^'']*$' , 'comp': function('s:CompQString') })
