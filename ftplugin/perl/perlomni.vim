@@ -352,6 +352,22 @@ fun! s:StringFilter(list,string)
     return filter(copy(a:list),"stridx(v:val,'".string."') == 0 && v:val != '".string."'" )
 endf
 " }}}
+
+
+" Available Rule attributes
+"   only:
+"       if one rule is matched, then rest rules won't be check.
+"   contains:
+"       if file contains some string (can be regexp)
+"   context:
+"       completion context pattern
+"   backward:
+"       regexp for moving cursor back to the completion position.
+"   head:
+"       pattern that matches paragraph head.
+"   comp:
+"       completion function reference.
+
 " SIMPLE MOOSE COMPLETION {{{
 fun! s:CompMooseIs(base,context)
     return s:Quote(['rw', 'ro', 'wo'])
