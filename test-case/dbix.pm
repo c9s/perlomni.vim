@@ -100,5 +100,18 @@ __PACKAGE__->has_many( 'user_groups' => 'DBIC::Result::Usergroup' , 'userid' ); 
 __PACKAGE__->many_to_many( 'groups' => 'user_groups' , 'groupid' );               # find 'groups' in 'usergroups' select groups by 'groupid'
 
 
-    $schema->resultset("
+# Make sure result class name will be completed.
+# $schema->resultset("
+
+
+# TODO: mark $rs as resultset class "User"
+my $rs = $schema->resultset("User");
+
+# TODO:
+$schema->resultset("User")->...
+
+# TODO: complete resultset class methods:
+$rs->...
+
+
 1;
