@@ -829,6 +829,19 @@ fun! s:DBIxCompMethod(base,context)
 endf
 
 
+fun! s:scanDBIxResultClasses()
+
+    
+    " XXX: return class name list
+    return [ ]
+endf
+
+fun! s:compDBIxResultClass(context,base)
+    let classes = s:scanDBIxResultClasses()
+    return s:StringFilter(classes,a:base)
+endf
+
+
 " DBIx::Class::Core completion
 "   use contains to check file content, do complete dbix methods if and only
 "   if there is a DBIx::Class::Core
@@ -844,6 +857,11 @@ cal s:rule({
     \'comp':    function('s:DBIxCompMethod')
     \})
 
+cal s:rule( {
+    \'only': 1,
+    \'context': '->resultset(\s*[''"]',
+    \'backward': '\w*$',
+    \'comp':  function('s:compDBIxResultClass') } )
 
 " Moose Completion Rules {{{
 cal s:rule({ 
