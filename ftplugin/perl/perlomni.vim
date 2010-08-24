@@ -844,8 +844,27 @@ fun! s:DBIxCompMethod(base,context)
         \ ],a:base)
 endf
 
+fun! s:scanDBIxResultClasses()
+    let path = '/home/c9s/git/mandice/cometqueen/dblib'
+    let pms = split(system('find ' . path . ' -iname "*.pm" | grep Result'),"\n")
+    cal map( pms, 'substitute(v:val,''^.*lib/\?'',"","")')
+    cal map( pms, 'substitute(v:val,"\\.pm$","","")' )
+    cal map( pms, 'substitute(v:val,"/","::","g")' )
+    return pms
+endf
 
-" DBIx::Class::Core completion
+fun! s:getResultClassName( classes )
+    let classes = copy(a:classes)
+    cal map( classes , "substitute(v:val,'^.*::','','')" )
+    return classes
+endf
+
+fun! s:compDBIxResultClassName(base,context)
+    return s:StringFilter( s:getResultClassName(   s:scanDBIxResultClasses()  )  ,a:base)
+endf
+
+" DBIx::Class::Core completion ======================================
+"
 "   use contains to check file content, do complete dbix methods if and only
 "   if there is a DBIx::Class::Core
 "
@@ -859,6 +878,15 @@ cal s:rule({
     \'backward': '\w*$',
     \'comp':    function('s:DBIxCompMethod')
     \})
+
+cal s:rule( {
+    \'only': 1,
+    \'context': '->resultset(\s*[''"]',
+    \'backward': '\w*$',
+    \'comp':  function('s:compDBIxResultClassName') } )
+
+
+
 
 
 " Moose Completion Rules {{{

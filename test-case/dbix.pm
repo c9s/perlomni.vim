@@ -100,4 +100,5 @@ __PACKAGE__->has_many( 'user_groups' => 'DBIC::Result::Usergroup' , 'userid' ); 
 __PACKAGE__->many_to_many( 'groups' => 'user_groups' , 'groupid' );               # find 'groups' in 'usergroups' select groups by 'groupid'
 
 
+    $schema->resultset("
 1;
