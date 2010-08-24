@@ -868,6 +868,7 @@ cal s:rule({
     \'context': '\s\+is\s*=>\s*$'  , 
     \'backward': '[''"]\?\w*$' , 
     \'comp': function('s:CompMooseIs') } )
+
 cal s:rule({ 
     \'only':1, 
     \'head': '^has\s\+\w\+' , 

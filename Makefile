@@ -60,7 +60,7 @@ README_FILES=`ls -1 | grep -i readme`
 WGET_OPT=-c -nv
 CURL_OPT=
 RECORD_SCRIPT=.mkrecord
-TAR=tar czvHf
+TAR=tar cvzf
 
 # INTERNAL FUNCTIONS {{{
 record_file = \
