@@ -845,7 +845,7 @@ fun! s:DBIxCompMethod(base,context)
 endf
 
 fun! s:scanDBIxResultClasses()
-    let path = '/home/c9s/git/mandice/cometqueen/dblib'
+    let path = 'lib'
     let pms = split(system('find ' . path . ' -iname "*.pm" | grep Result'),"\n")
     cal map( pms, 'substitute(v:val,''^.*lib/\?'',"","")')
     cal map( pms, 'substitute(v:val,"\\.pm$","","")' )
