@@ -844,9 +844,7 @@ fun! s:getResultClassName( classes )
 endf
 
 fun! s:compDBIxResultClassName(base,context)
-    let classes = s:getResultClassName( s:scanDBIxResultClasses() )
-    " return classes
-    return s:StringFilter(classes,a:base)
+    return s:StringFilter( s:getResultClassName(   s:scanDBIxResultClasses()  )  ,a:base)
 endf
 
 " DBIx::Class::Core completion ======================================
