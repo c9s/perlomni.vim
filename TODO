@@ -5,11 +5,8 @@ x base class function completion
 * grouping rule 
     :to be able to disable/enable specified group (extension)
 * template declare completion extension
-* jifty dbi completion
-* dbix::class completion
 * class variable completion
-* export function completion
-
+* exported function completion
 * support class method completion from 'isa', for example:
 
         has handle =>
@@ -17,3 +14,4 @@ x base class function completion
 
         $self->handle->
 
+* completion priority
