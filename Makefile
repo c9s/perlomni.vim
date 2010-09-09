@@ -60,7 +60,7 @@ README_FILES=`ls -1 | grep -i readme`
 WGET_OPT=-c -nv
 CURL_OPT=
 RECORD_SCRIPT=.mkrecord
-TAR=tar cvzf
+TAR=tar czvf
 
 # INTERNAL FUNCTIONS {{{
 record_file = \
@@ -256,13 +256,13 @@ mkfilelist:
 vimball-edit:
 	find $(DIRS) -type f > .tmp_list
 	vim .tmp_list
-	vim .tmp_list -c ":MkVimball $(NAME)-$(VERSION)" -c "q"
+	vim .tmp_list -c ":MkVimball $(NAME)-$(VERSION) ." -c "q"
 	@rm -vf .tmp_list
 	@echo "$(NAME)-$(VERSION).vba is ready."
 
 vimball:
 	find $(DIRS) -type f > .tmp_list
-	vim .tmp_list -c ":MkVimball $(NAME)-$(VERSION)" -c "q"
+	vim .tmp_list -c ":MkVimball $(NAME)-$(VERSION) ." -c "q"
 	@rm -vf .tmp_list
 	@echo "$(NAME)-$(VERSION).vba is ready."
 
@@ -289,12 +289,14 @@ mkrecordscript:
 		@echo "let content = join(split(output,\"\\\\n\"),'')"  >> $(RECORD_SCRIPT)
 		@echo "let record_file = expand('~/.vim/record/' . package_name )"  >> $(RECORD_SCRIPT)
 		@echo "cal writefile( [content] , record_file )"  >> $(RECORD_SCRIPT)
+		@echo "cal delete('.record')"  >> $(RECORD_SCRIPT)
 		@echo "echo \"Done\""  >> $(RECORD_SCRIPT)
 
 
 record: mkfilelist mkrecordscript
 	vim --noplugin -V10install.log -c "so $(RECORD_SCRIPT)" -c "q"
 	@echo "Vim script record making log: install.log"
+#	@rm -vf $(RECORD_FILE)
 
 rmrecord:
 	@echo "Removing Record"
