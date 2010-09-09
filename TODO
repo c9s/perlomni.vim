@@ -15,3 +15,6 @@ x base class function completion
         $self->handle->
 
 * completion priority
+* completion dictionary components
+    - for loading completion data instead of parsing , eg:
+            [completion item]\t[preview]\t[type] ...
