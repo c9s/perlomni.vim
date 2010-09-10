@@ -942,7 +942,7 @@ cal s:rule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function('s:
 cal s:rule({
     \'only':1, 
     \'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' , 
-    \'backward': '\<[A-Z][a-z0-9_:]*$', 
+    \'backward': '\<[A-Z][A-Za-z0-9_:]*$', 
     \'comp': function('s:CompClassName') } )
 
 
