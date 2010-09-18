@@ -12,6 +12,15 @@ perl-completion plugin supports basic perl completion and Moose / DBIx::Class co
 
 the rules could be easily extended. see ( ftplugin/perl/perlomni.vim )
 
+core rules including:
+
+* variable name completion
+* function name completion
+* package method name completion
+* base class method name completion
+* basic Moose completion
+* basic DBIx completion
+
 Install
 ========
 
