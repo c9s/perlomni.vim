@@ -21,6 +21,14 @@ core rules including:
 * basic Moose completion
 * basic DBIx completion
 
+
+Requirement
+===========
+
+perlomni completion requires *vim 7.2 or newer.*
+
+and filetype feature should be enabled.
+
 Install
 ========
 
