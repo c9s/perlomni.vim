@@ -53,7 +53,7 @@ endfunction
 
 " Rule
 fun! AddPerlOmniRule(hash)
-    cal s:rule(a:hash)
+    return s:rule(a:hash)
 endf
 
 " Cache Function. {{{

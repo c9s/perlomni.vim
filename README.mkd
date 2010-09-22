@@ -70,6 +70,33 @@ your omni completion extension should put in ~/.vim/after/ftplugin/perl/what-eve
         \'backward': '[''"]\?\w*$' , 
         \'comp': function('s:CompMooseIs') } )
 
+    cal AddPerlOmniRule({
+        \'only':1, 
+        \'context': '&$', 
+        \'backward': '\<\U\w\+$', 
+        \'comp': function('s:CompBufferFunction') })
+
+Available Rule attributes
+
+only:
+    if one rule is matched, then rest rules won't be check.
+
+contains:
+    if file contains some string (can be regexp)
+
+context:
+    completion context pattern
+
+backward:
+    regexp for moving cursor back to the completion position.
+
+head:
+    pattern that matches paragraph head.
+
+comp:
+    completion function reference.
+
+
 ### Cache Functions
 
 **GetCacheNS(ns,key)**
