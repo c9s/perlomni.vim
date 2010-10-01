@@ -587,9 +587,16 @@ fun! s:SortByLength(i1, i2)
 endfunc
 
 
+fun! s:CompUnderscoreTokens(base,context)
+    return s:StringFilter( [ 'PACKAGE__' , 'END__' , 'DATA__' , 'LINE__' , 'FILE__' ] , a:base )
+endf
+
+
 fun! s:CompPodHeaders(base,context)
-    let pods = [ 'head1' , 'head2' , 'head3' , 'begin' , 'end', 'encoding' , 'cut' , 'pod' , 'over' , 'item' , 'for' , 'back' ]
-    return s:StringFilter( pods , a:base )
+    return s:StringFilter(
+        \ [ 'head1' , 'head2' , 'head3' , 'begin' , 'end', 
+        \   'encoding' , 'cut' , 'pod' , 'over' , 
+        \   'item' , 'for' , 'back' ] , a:base )
 endf
 
 " echo s:CompPodHeaders('h','')
@@ -862,6 +869,13 @@ endf
 fun! s:compDBIxResultClassName(base,context)
     return s:StringFilter( s:getResultClassName(   s:scanDBIxResultClasses()  )  ,a:base)
 endf
+
+
+cal s:rule({
+    \'context': '__$',
+    \'backward': '[A-Z]*$',
+    \'comp': function('s:CompUnderscoreTokens') })
+
 
 " DBIx::Class::Core completion ======================================
 "
