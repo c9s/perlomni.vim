@@ -591,6 +591,10 @@ fun! s:CompUnderscoreTokens(base,context)
     return s:StringFilter( [ 'PACKAGE__' , 'END__' , 'DATA__' , 'LINE__' , 'FILE__' ] , a:base )
 endf
 
+fun! s:CompPodSections(base,context)
+    return s:StringFilter( [ 'NAME' , 'SYNOPSIS' , 'AUTHOR' , 'DESCRIPTION' , 'FUNCTIONS' , 
+        \ 'USAGE' , 'OPTIONS' , 'BUG REPORT' , 'DEVELOPMENT' , 'NOTES' , 'ABOUT' , 'REFERENCES' ] , a:base )
+endf
 
 fun! s:CompPodHeaders(base,context)
     return s:StringFilter(
@@ -945,6 +949,9 @@ cal s:rule({
 " Core Completion Rules {{{
 cal s:rule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function('s:CompPodHeaders') })
 
+cal s:rule({'only':1, 'context': '^=\w\+\s' , 'backward': '\w*$', 'comp': function('s:CompPodSections') })
+
+
 
 " class name completion
 "  matches:
@@ -1029,9 +1036,6 @@ cal s:rule({
     \'context': '$' , 
     \'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 
     \'comp': function('s:CompClassName') } )
-
-
-
 
 " string completion
 " cal s:rule({'context': '\s''', 'backward': '\_[^'']*$' , 'comp': function('s:CompQString') })
