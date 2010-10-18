@@ -8,11 +8,19 @@ let s:debug_flag = 0
 runtime 'plugin/perlomni-data.vim'
 runtime 'plugin/perlomni-util.vim'
 
-let s:vimbin = globpath(&rtp, 'bin/')
+" Check installed scripts {{{
+fun! s:findBin(script)
+    let bins = split(globpath(&rtp, 'bin/'.a:script), "\n")
+    if len(bins) == 0
+        return ''
+    endif
+    return bins[0][:-len(a:script)-1]
+endfunction
+let s:vimbin = s:findBin('grep-objvar.pl')
+" }}}
 
 " Warning {{{
-if ! filereadable(s:vimbin.'grep-objvar.pl')
-            \ && ! filereadable(s:vimbin.'grep-pattern.pl')
+if len(s:vimbin) == 0
     echo "Please install scripts to ~/.vim/bin"
     finish
 endif

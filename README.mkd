@@ -46,6 +46,8 @@ please make sure you've enable filetype plugin your `.vimrc`:
     filetype plugin on
     filetype indent on
 
+NOTE) If you install pathogen.vim , you can make this working without installing.
+
 Usage
 =====
 
