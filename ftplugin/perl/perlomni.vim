@@ -541,10 +541,10 @@ fun! s:CompClassName(base,context)
         return cache
     endif
 
-    " prevent waiting too long
-    if strlen(a:base) == 0
-        return [ ]
-    endif
+    " XXX: prevent waiting too long
+    " if strlen(a:base) == 0
+    "    return [ ]
+    " endif
 
     if exists('g:cpan_mod_cache')
         let classnames = g:cpan_mod_cache
@@ -836,7 +836,7 @@ endf
 "
 
 " XXX: provide a dictinoary loader
-fun! s:DBIxCompMethod(base,context)
+fun! s:CompDBIxMethod(base,context)
     return s:StringFilter([ 
         \ "table" , "table_class" , "add_columns" , 
         \ "set_primary_key" , "has_many" ,
@@ -870,7 +870,7 @@ fun! s:getResultClassName( classes )
     return classes
 endf
 
-fun! s:compDBIxResultClassName(base,context)
+fun! s:CompDBIxResultClassName(base,context)
     return s:StringFilter( s:getResultClassName(   s:scanDBIxResultClasses()  )  ,a:base)
 endf
 
@@ -894,17 +894,24 @@ cal s:rule({
     \'context': '^__PACKAGE__->$',
     \'contains': 'DBIx::Class::Core',
     \'backward': '\w*$',
-    \'comp':    function('s:DBIxCompMethod')
+    \'comp':    function('s:CompDBIxMethod')
     \})
 
 cal s:rule( {
     \'only': 1,
     \'context': '->resultset(\s*[''"]',
     \'backward': '\w*$',
-    \'comp':  function('s:compDBIxResultClassName') } )
+    \'comp':  function('s:CompDBIxResultClassName') } )
 
 
 
+" inc::Module::Install rules {{{
+cal s:rule(  { 
+    \'context': '^\(requires\|build_requires\|test_requires\)',
+    \'backward': '[a-zA-Z0-9:]*$',
+    \'comp': function('s:CompClassName') })
+
+" }}}
 
 
 " Moose Completion Rules {{{
