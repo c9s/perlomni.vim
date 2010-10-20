@@ -453,7 +453,8 @@ endf
 
 " perl builtin functions
 fun! s:CompFunction(base,context)
-    return s:StringFilter(g:p5bfunctions,a:base)
+    return filter(copy(g:p5bfunctions),'v:val.word =~ "^".a:base')
+    " return s:StringFilter(g:p5bfunctions,a:base)
 endf
 
 fun! s:CompCurrentBaseFunction(base,context)
