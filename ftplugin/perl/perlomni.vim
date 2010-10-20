@@ -550,9 +550,9 @@ fun! s:CompClassName(base,context)
     endif
 
     " XXX: prevent waiting too long
-    " if strlen(a:base) == 0
-    "    return [ ]
-    " endif
+    if strlen(a:base) == 0
+       return [ ]
+    endif
 
     if exists('g:cpan_mod_cache')
         let classnames = g:cpan_mod_cache
@@ -882,14 +882,34 @@ fun! s:CompDBIxResultClassName(base,context)
     return s:StringFilter( s:getResultClassName(   s:scanDBIxResultClasses()  )  ,a:base)
 endf
 
+fun! s:CompModuleInstallExport(base,context) 
+    let words = g:p5_mi_export
+    return filter( copy(words) , 'v:val.word =~ a:base' )
+endf
 
+" RULES 
+" ====================================================================
+" MODULE-INSTALL FUNCTIONS ================================={{{
+cal s:rule({
+    \'contains'  :  'Module::Install',
+    \'backward'  :  '\w*$',
+    \'context'   :  '^\s*',
+    \'comp'      :  function('s:CompModuleInstallExport')
+    \})
+
+cal s:rule(  { 
+    \'context': '^\s*\(requires\|build_requires\|test_requires\)\s',
+    \'backward': '[a-zA-Z0-9:]*$',
+    \'comp': function('s:CompClassName') })
+" }}}
+" UNDERSCORES =================================="{{{
 cal s:rule({
     \'context': '__$',
     \'backward': '[A-Z]*$',
     \'comp': function('s:CompUnderscoreTokens') })
+"}}}
 
-
-" DBIx::Class::Core completion ======================================
+" DBIX::CLASS::CORE COMPLETION ======================================"{{{
 "
 "   use contains to check file content, do complete dbix methods if and only
 "   if there is a DBIx::Class::Core
@@ -911,16 +931,7 @@ cal s:rule( {
     \'backward': '\w*$',
     \'comp':  function('s:CompDBIxResultClassName') } )
 
-
-
-" inc::Module::Install rules {{{
-cal s:rule(  { 
-    \'context': '^\(requires\|build_requires\|test_requires\)',
-    \'backward': '[a-zA-Z0-9:]*$',
-    \'comp': function('s:CompClassName') })
-
-" }}}
-
+"}}}
 
 " Moose Completion Rules {{{
 cal s:rule({ 

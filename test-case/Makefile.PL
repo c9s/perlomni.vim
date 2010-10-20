@@ -7,7 +7,6 @@ all_from 'lib/App/gh.pm';
 author   q{Cornelius <cornelius.howl@gmail.com>};
 license  'perl';
 
-
 # Test1
 build_requires 'Test::More';
 
