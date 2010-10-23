@@ -894,12 +894,11 @@ endf
 cal s:rule({
     \'contains'  :  'Module::Install',
     \'backward'  :  '\w*$',
-    \'context'   :  '^\s*',
-    \'comp'      :  function('s:CompModuleInstallExport')
-    \})
+    \'context'   :  '^$',
+    \'comp'      :  function('s:CompModuleInstallExport') })
 
 cal s:rule(  { 
-    \'context': '^\s*\(requires\|build_requires\|test_requires\)\s',
+    \'context': '^\(requires\|build_requires\|test_requires\)\s',
     \'backward': '[a-zA-Z0-9:]*$',
     \'comp': function('s:CompClassName') })
 " }}}

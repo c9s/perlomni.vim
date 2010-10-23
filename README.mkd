@@ -130,7 +130,6 @@ twitter:  http://twitter.com/c9s
 Samples
 =======
 
-
     " SAMPLES {{{
 
     extends 'Moose::Meta::Attribute';
