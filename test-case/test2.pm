@@ -1,6 +1,5 @@
 
+use List::MoreUtils qw();
 
-use List::MoreUtils;
-
-
+use List::AllUtils qw/max /;
 
