@@ -8,6 +8,8 @@ let s:debug_flag = 0
 runtime 'plugin/perlomni-data.vim'
 runtime 'plugin/perlomni-util.vim'
 
+let s:mod_pattern = '[a-zA-Z][a-zA-Z0-9:]\+'
+
 " Check installed scripts {{{
 fun! s:findBin(script)
     let bins = split(globpath(&rtp, 'bin/'.a:script), "\n")
@@ -734,12 +736,11 @@ endf
 " Scan export functions in current buffer
 " Return functions
 fun! s:scanCurrentExportFunction()
-    let mod_pattern = '[a-zA-Z][a-zA-Z0-9:]\+'
     let lines = getline( 1 , '$' )
     cal filter(  lines , 'v:val =~ ''^\s*use\s''')
     let funcs = [ ]
     for line in lines
-        let m = matchstr( line , '\(^use\s\+\)\@<=' . mod_pattern )
+        let m = matchstr( line , '\(^use\s\+\)\@<=' . s:mod_pattern )
         if strlen(m) > 0 
             cal extend(funcs , s:toCompHashList(s:scanModuleExportFunctions(m),m))
         endif
@@ -935,6 +936,12 @@ fun! s:CompDBIxResultClassName(base,context)
     return s:StringFilter( s:getResultClassName(   s:scanDBIxResultClasses()  )  ,a:base)
 endf
 
+fun! s:CompExportFunction(base,context)
+    let m = matchstr( a:context , '\(^use\s\+\)\@<=' . s:mod_pattern )
+    let funcs = s:toCompHashList(s:scanModuleExportFunctions(m),m)
+    return filter(funcs,'v:val.word =~ a:base')
+endf
+
 fun! s:CompModuleInstallExport(base,context) 
     let words = g:p5_mi_export
     return filter( copy(words) , 'v:val.word =~ a:base' )
@@ -943,6 +950,8 @@ endf
 " RULES 
 " ====================================================================
 " MODULE-INSTALL FUNCTIONS ================================={{{
+
+
 cal s:rule({
     \'contains'  :  'Module::Install',
     \'backward'  :  '\w*$',
@@ -953,6 +962,7 @@ cal s:rule(  {
     \'context': '^\(requires\|build_requires\|test_requires\)\s',
     \'backward': '[a-zA-Z0-9:]*$',
     \'comp': function('s:CompClassName') })
+
 " }}}
 " UNDERSCORES =================================="{{{
 cal s:rule({
@@ -1029,7 +1039,12 @@ cal s:rule({'only':1, 'context': '^=$', 'backward': '\w*$', 'comp': function('s:
 
 cal s:rule({'only':1, 'context': '^=\w\+\s' , 'backward': '\w*$', 'comp': function('s:CompPodSections') })
 
-
+" export function completion
+cal s:rule({
+    \'only': 1,
+    \'context': '^use\s\+[a-zA-Z0-9:]\+\s\+qw',
+    \'backward': '\w*$',
+    \'comp': function('s:CompExportFunction') })
 
 " class name completion
 "  matches:
@@ -1088,6 +1103,7 @@ cal s:rule({
     \'context': '&$', 
     \'backward': '\<\U\w\+$', 
     \'comp': function('s:CompBufferFunction') })
+
 
 " function completion
 cal s:rule({
