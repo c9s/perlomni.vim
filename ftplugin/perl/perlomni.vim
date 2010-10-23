@@ -303,7 +303,7 @@ fun! PerlComplete(findstart, base)
                     let l:found = 0
                     " check content
                     for line in b:lines 
-                        if l:text =~ rule.contains 
+                        if line =~ rule.contains 
                             let l:found = 1
                             break
                         endif
@@ -453,7 +453,10 @@ endf
 
 " perl builtin functions
 fun! s:CompFunction(base,context)
-    return filter(copy(g:p5bfunctions),'v:val.word =~ "^".a:base')
+    let efuncs = s:scanCurrentExportFunction()
+    let flist = copy(g:p5bfunctions)
+    cal extend(flist,efuncs)
+    return filter(flist,'v:val.word =~ "^".a:base')
     " return s:StringFilter(g:p5bfunctions,a:base)
 endf
 
@@ -703,23 +706,47 @@ endf
 " SCANNING FUNCTIONS {{{
 
 
+fun! s:runPerlEval(mtext,code)
+    let cmd = 'perl -M' . a:mtext . ' -e "' . escape(a:code,'"') . '"'
+    return system(cmd)
+endf
+
 " scan exported functions from a module.
-fun! s:scanExportFunctions(class)
+fun! s:scanModuleExportFunctions(class)
     let funcs = []
-    let cmd = 'perl -M' . a:class . ' -e "' 
-                \ . escape(printf( 'print join " ",@%s::EXPORT_OK' , a:class ),'"')
-                \ . '"'
-    let output = system(cmd)
+
+    let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT_OK' , a:class ))
     cal extend( funcs , split( output ) )
 
-    let cmd = 'perl -M' . a:class . ' -e "' 
-                \ . escape(printf( 'print join " ",@%s::EXPORT' , a:class ),'"')
-                \ . '"'
-    let output = system(cmd)
+    let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT' , a:class ))
     cal extend( funcs , split( output ) )
     return funcs
 endf
-" echo s:scanExportFunctions( 'List::MoreUtils' )
+" echo s:scanModuleExportFunctions( 'List::MoreUtils' )
+" sleep 1
+
+" util function for building completion hashlist
+fun! s:toCompHashList(list,menu)
+  return map( a:list , '{ "word": v:val , "menu": "'. a:menu .'" }' )
+endf
+
+
+" Scan export functions in current buffer
+" Return functions
+fun! s:scanCurrentExportFunction()
+    let mod_pattern = '[a-zA-Z][a-zA-Z0-9:]\+'
+    let lines = getline( 1 , '$' )
+    cal filter(  lines , 'v:val =~ ''^\s*use\s''')
+    let funcs = [ ]
+    for line in lines
+        let m = matchstr( line , '\(^use\s\+\)\@<=' . mod_pattern )
+        if strlen(m) > 0 
+            cal extend(funcs , s:toCompHashList(s:scanModuleExportFunctions(m),m))
+        endif
+    endfor
+    return funcs
+endf
+" echo s:scanCurrentExportFunction()
 " sleep 1
 
 
