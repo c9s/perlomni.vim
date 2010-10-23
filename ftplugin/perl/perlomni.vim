@@ -701,6 +701,29 @@ fun! s:getSubScopeLines(nr)
 endf
 " }}}
 " SCANNING FUNCTIONS {{{
+
+
+" scan exported functions from a module.
+fun! s:scanExportFunctions(class)
+    let funcs = []
+    let cmd = 'perl -M' . a:class . ' -e "' 
+                \ . escape(printf( 'print join " ",@%s::EXPORT_OK' , a:class ),'"')
+                \ . '"'
+    let output = system(cmd)
+    cal extend( funcs , split( output ) )
+
+    let cmd = 'perl -M' . a:class . ' -e "' 
+                \ . escape(printf( 'print join " ",@%s::EXPORT' , a:class ),'"')
+                \ . '"'
+    let output = system(cmd)
+    cal extend( funcs , split( output ) )
+    return funcs
+endf
+" echo s:scanExportFunctions( 'List::MoreUtils' )
+" sleep 1
+
+
+" FUNC: scanClass {{{
 fun! s:scanClass(path)
     let l:cache = GetCacheNS('classpath', a:path)
     if type(l:cache) != type(0)
@@ -716,7 +739,8 @@ fun! s:scanClass(path)
     return SetCacheNS('classpath',a:path,l:files)
 endf
 " echo s:scanClass(expand('~/aiink/aiink/lib'))
-
+" }}}
+" FUNC: scanObjectVariableLines {{{
 fun! s:scanObjectVariableLines(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
@@ -733,6 +757,7 @@ fun! s:scanObjectVariableLines(lines)
     return b:objvarMapping
 endf
 " echo s:scanObjectVariableLines([])
+" }}}
 
 fun! s:scanObjectVariableFile(file)
 "     let l:cache = GetCacheNS('objvar_', a:file)
@@ -1070,6 +1095,8 @@ cal s:rule({
 
 
 " }}}
+
+
 setlocal omnifunc=PerlComplete
 
 " Configurations
