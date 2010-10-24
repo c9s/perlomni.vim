@@ -1,10 +1,5 @@
 # SAMPLES {{{
 
-package Orz;
-extends 'Moose::Meta::Attribute';
-use base qw(App::CLI);
-
-sub _cmd_map
 
 
 # module compeltion
