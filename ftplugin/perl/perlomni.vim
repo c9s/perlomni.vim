@@ -58,7 +58,6 @@ fun! s:system(...)
 endfunction
 " }}}
 
-
 " Public API {{{
 
 " Rule
@@ -92,7 +91,7 @@ fun! SetCacheNS(ns,key,value)
     let g:perlomni_cache[ key ] = a:value
     return a:value
 endf
-com! CacheNSClear  :unlet g:perlomni_cache
+com! PerlOmniCacheClear  :unlet g:perlomni_cache
 
 " }}}
 
@@ -715,14 +714,18 @@ endf
 
 " scan exported functions from a module.
 fun! s:scanModuleExportFunctions(class)
-    let funcs = []
+    let l:cache = GetCacheNS('mef',a:class)
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
 
+    let funcs = []
     let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT_OK' , a:class ))
     cal extend( funcs , split( output ) )
 
     let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT' , a:class ))
     cal extend( funcs , split( output ) )
-    return funcs
+    return SetCacheNS('mef',a:class,s:toCompHashList(funcs,a:class))
 endf
 " echo s:scanModuleExportFunctions( 'List::MoreUtils' )
 " sleep 1
@@ -736,16 +739,21 @@ endf
 " Scan export functions in current buffer
 " Return functions
 fun! s:scanCurrentExportFunction()
+    let l:cache = GetCacheNS('cbexf', bufname('%'))
+    if type(l:cache) != type(0)
+        return l:cache
+    endif
+
     let lines = getline( 1 , '$' )
     cal filter(  lines , 'v:val =~ ''^\s*use\s''')
     let funcs = [ ]
     for line in lines
         let m = matchstr( line , '\(^use\s\+\)\@<=' . s:mod_pattern )
         if strlen(m) > 0 
-            cal extend(funcs , s:toCompHashList(s:scanModuleExportFunctions(m),m))
+            cal extend(funcs ,s:scanModuleExportFunctions(m))
         endif
     endfor
-    return funcs
+    return SetCacheNS('cbexf',bufname('%'),funcs)
 endf
 " echo s:scanCurrentExportFunction()
 " sleep 1
@@ -938,8 +946,8 @@ endf
 
 fun! s:CompExportFunction(base,context)
     let m = matchstr( a:context , '\(^use\s\+\)\@<=' . s:mod_pattern )
-    let funcs = s:toCompHashList(s:scanModuleExportFunctions(m),m)
-    return filter(funcs,'v:val.word =~ a:base')
+    let l:funcs = s:toCompHashList(s:scanModuleExportFunctions(m),m)
+    return filter(copy(l:funcs),'v:val.word =~ a:base')
 endf
 
 fun! s:CompModuleInstallExport(base,context) 
