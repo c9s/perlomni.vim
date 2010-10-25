@@ -749,12 +749,13 @@ fun! s:scanModuleExportFunctions(class)
 
     let funcs = []
 
-    " XXX: too slow
-    if exists('g:perlomni_enable_export_functions')
+    " XXX: TOO SLOW, CACHE TO FILE!!!!
+    if exists('g:perlomni_export_functions')
         let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT_OK' , a:class ))
         cal extend( funcs , split( output ) )
         let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT' , a:class ))
         cal extend( funcs , split( output ) )
+        echo [a:class,output]
     endif
     return SetCacheNS('mef',a:class,s:toCompHashList(funcs,a:class))
 endf
