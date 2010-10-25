@@ -959,11 +959,17 @@ endf
 
 fun! s:scanDBIxResultClasses()
     let path = 'lib'
+    let l:cache = GetCacheNS('dbix_c',path)
+    if type(l:cache) != type(0) 
+        return l:cache
+    endif
+
     let pms = split(system('find ' . path . ' -iname "*.pm" | grep Result'),"\n")
     cal map( pms, 'substitute(v:val,''^.*lib/\?'',"","")')
     cal map( pms, 'substitute(v:val,"\\.pm$","","")' )
     cal map( pms, 'substitute(v:val,"/","::","g")' )
-    return pms
+
+    return SetCacheNS('dbix_c',path,pms)
 endf
 
 fun! s:getResultClassName( classes )
@@ -1114,7 +1120,7 @@ cal s:rule({
 
 cal s:rule({
     \'only':1, 
-    \'context': '^\s*my\s\+\$self$' , 
+    \'context': '^\s*my\s\+\$self' ,
     \'backward': '\s*=\s\+shift;', 
     \'comp': [ ' = shift;' ] })
 
