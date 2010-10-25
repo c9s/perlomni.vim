@@ -248,6 +248,7 @@ endf
 
 fun! PerlComplete(findstart, base)
 
+
     if ! exists('b:lines')
         " max 200 lines , to '$' will be very slow
         let b:lines = getline( 1, 200 )
@@ -257,6 +258,7 @@ fun! PerlComplete(findstart, base)
     let lnum = line('.')
     let start = col('.') - 1
     if a:findstart
+
         let b:comps = [ ]
         "let s_pos = s:FindSpace(start,lnum,line)
 
@@ -359,6 +361,7 @@ fun! PerlComplete(findstart, base)
                 endif
             endif
         endfor
+
         return first_bwidx
     else 
         return b:comps
@@ -745,11 +748,14 @@ fun! s:scanModuleExportFunctions(class)
     endif
 
     let funcs = []
-    let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT_OK' , a:class ))
-    cal extend( funcs , split( output ) )
 
-    let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT' , a:class ))
-    cal extend( funcs , split( output ) )
+    " XXX: too slow
+    if exists('g:perlomni_enable_export_functions')
+        let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT_OK' , a:class ))
+        cal extend( funcs , split( output ) )
+        let output = s:runPerlEval( a:class , printf( 'print join " ",@%s::EXPORT' , a:class ))
+        cal extend( funcs , split( output ) )
+    endif
     return SetCacheNS('mef',a:class,s:toCompHashList(funcs,a:class))
 endf
 " echo s:scanModuleExportFunctions( 'List::MoreUtils' )
@@ -1184,8 +1190,6 @@ cal s:rule({
 
 
 " }}}
-
-
 setlocal omnifunc=PerlComplete
 
 " Configurations
