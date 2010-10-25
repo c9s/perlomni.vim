@@ -2,8 +2,6 @@ package Test;
 use base qw(App::CLI);
 
 # complete here
-sub a
-
-
+# sub a
 
 1;

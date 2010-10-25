@@ -67,20 +67,46 @@ endf
 
 " Cache Function. {{{
 let s:last_cache_ts = localtime()
+let s:cache_expiry =  { }
+let s:cache_last   =  { }
+
 fun! GetCacheNS(ns,key)
-    if localtime() - s:last_cache_ts > g:perlomni_cache_expiry
-        let s:last_cache_ts = localtime()
+    let key = a:ns . "_" . a:key
+    if has_key( s:cache_expiry , key ) 
+        let expiry = s:cache_expiry[ key ]
+        let last_ts = s:cache_last[ key ]
+    else 
+        let expiry = g:perlomni_cache_expiry
+        let last_ts = s:last_cache_ts
+    endif
+
+    if localtime() - last_ts > expiry
+        if has_key( s:cache_expiry , key ) 
+            let s:cache_last[ key ] = localtime()
+        else
+            let s:last_cache_ts = localtime()
+        endif
         return 0
     endif
 
     if ! g:perlomni_use_cache
         return 0
     endif
-    let key = a:ns . "_" . a:key
     if exists('g:perlomni_cache[key]')
         return g:perlomni_cache[key]
     endif
     return 0
+endf
+
+fun! SetCacheNSWithExpiry(ns,key,value,exp)
+    if ! exists('g:perlomni_cache')
+        let g:perlomni_cache = { }
+    endif
+    let key = a:ns . "_" . a:key
+    let g:perlomni_cache[ key ] = a:value
+    let s:cache_expiry[ key ] = a:exp
+    let s:cache_last[ key ] = localtime()
+    return a:value
 endf
 
 fun! SetCacheNS(ns,key,value)
@@ -458,7 +484,6 @@ fun! s:CompFunction(base,context)
     let flist = copy(g:p5bfunctions)
     cal extend(flist,efuncs)
     return filter(flist,'v:val.word =~ "^".a:base')
-    " return s:StringFilter(g:p5bfunctions,a:base)
 endf
 
 fun! s:CompCurrentBaseFunction(base,context)
@@ -745,7 +770,7 @@ fun! s:scanCurrentExportFunction()
     endif
 
     let lines = getline( 1 , '$' )
-    cal filter(  lines , 'v:val =~ ''^\s*use\s''')
+    cal filter(  lines , 'v:val =~ ''^\s*\(use\|require\)\s''')
     let funcs = [ ]
     for line in lines
         let m = matchstr( line , '\(^use\s\+\)\@<=' . s:mod_pattern )
@@ -796,7 +821,7 @@ endf
 " }}}
 
 fun! s:scanObjectVariableFile(file)
-"     let l:cache = GetCacheNS('objvar_', a:file)
+"     let l:cache = GetCacheNS('objvar', a:file)
 "     if type(l:cache) != type(0)
 "         return l:cache
 "     endif
@@ -812,11 +837,13 @@ fun! s:scanObjectVariableFile(file)
         endif
     endfor
     return b:objvarMapping
-"     return SetCacheNS('objvar_',a:file,b:objvarMapping)
+"     return SetCacheNSWithExpiry('objvar',a:file,b:objvarMapping,60 * 10)
 endf
 " echo s:scanObjectVariableFile( expand('~/git/bps/jifty-dbi/lib/Jifty/DBI/Collection.pm') )
 
 
+
+" XXX: CACHE THIS
 fun! s:scanHashVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
@@ -825,6 +852,7 @@ endf
 " echo s:scanHashVariable( getline(1,'$') )
 
 
+" XXX: CACHE THIS
 fun! s:scanQString(lines)
     let buffile = tempname()
     cal writefile( a:lines, buffile)
@@ -832,6 +860,7 @@ fun! s:scanQString(lines)
     return split( cmd ,"\n")
 endf
 
+" XXX: CACHE THIS
 fun! s:scanQQString(lines)
     let buffile = tempname()
     cal writefile( a:lines, buffile)
@@ -839,6 +868,9 @@ fun! s:scanQQString(lines)
 endf
 " echo s:scanQQStringFile('testfile')
 
+
+
+" XXX: CACHE THIS
 fun! s:scanArrayVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)

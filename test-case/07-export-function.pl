@@ -11,6 +11,6 @@ a
 
 # a to all
 
-m
+min
 
 # m to max

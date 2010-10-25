@@ -1,17 +1,14 @@
 
 # moose complete
-
 has url => (
     metaclass => 'Labeled',
     is => 'wo'
     label     => "The site's URL",
     isa => 'AFS::Object',
-    reader => 'url
-    writer => '
+    reader => 
 );
 
 # role
-
 with 'Restartable' => {
     -alias => {
         stop  => '_stop',
