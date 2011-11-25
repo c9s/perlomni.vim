@@ -28,6 +28,12 @@ if len(s:vimbin) == 0
 endif
 " }}}
 
+" Quote arguments for shell. {{{
+fun! s:quote(s)
+  return &shellxquote == '"' ? "'".a:s."'" : '"'.a:s.'"'
+endfunction
+" }}}
+
 " Wrapped system() Function. {{{
 fun! s:system(...)
     let cmd = ''
@@ -712,10 +718,10 @@ fun! CPANSourceLists()
 
   echo "Downloading CPAN source list."
   if executable('curl')
-    exec '!curl http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -o ' . f
+    exec '!curl http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -o ' . s:quote(f)
     return f
   elseif executable('wget')
-    exec '!wget http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -O ' . f
+    exec '!wget http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -O ' . s:quote(f)
     return f
   endif
   echoerr "You don't have curl or wget to download the package list."
