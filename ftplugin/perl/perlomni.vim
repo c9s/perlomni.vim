@@ -392,8 +392,7 @@ fun! s:RegExpFilter(list,pattern)
 endf
 
 fun! s:StringFilter(list,string)
-    let string = substitute(a:string,"'","''",'g')
-    return filter(copy(a:list),"stridx(v:val,'".string."') == 0 && v:val != '".string."'" )
+    return filter(copy(a:list),"stridx(v:val,a:string) == 0 && v:val != a:string" )
 endf
 " }}}
 
