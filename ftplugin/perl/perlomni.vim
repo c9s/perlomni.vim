@@ -28,12 +28,6 @@ if len(s:vimbin) == 0
 endif
 " }}}
 
-" Quote arguments for shell. {{{
-fun! s:quote(s)
-  return &shellxquote == '"' ? "'".a:s."'" : '"'.a:s.'"'
-endfunction
-" }}}
-
 " Wrapped system() Function. {{{
 fun! s:system(...)
     let cmd = ''
@@ -382,18 +376,23 @@ endf
 let s:rules = [ ]
 
 " Util Functions {{{
+
 fun! s:Quote(list)
     return map(copy(a:list), '"''".v:val."''"' )
 endf
 
 fun! s:RegExpFilter(list,pattern)
-    let pattern = substitute(a:pattern,"'","''",'g')
-    return filter(copy(a:list),"v:val =~ '^".pattern."'")
+    return filter(copy(a:list),"v:val =~ a:pattern")
 endf
 
 fun! s:StringFilter(list,string)
     return filter(copy(a:list),"stridx(v:val,a:string) == 0 && v:val != a:string" )
 endf
+
+fun! s:ShellQuote(s)
+  return &shellxquote == '"' ? "'".a:s."'" : '"'.a:s.'"'
+endfunction
+
 " }}}
 
 
@@ -715,10 +714,10 @@ fun! CPANSourceLists()
 
   echo "Downloading CPAN source list."
   if executable('curl')
-    exec '!curl http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -o ' . s:quote(f)
+    exec '!curl http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -o ' . s:ShellQuote(f)
     return f
   elseif executable('wget')
-    exec '!wget http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -O ' . s:quote(f)
+    exec '!wget http://cpan.nctu.edu.tw/modules/02packages.details.txt.gz -O ' . s:ShellQuote(f)
     return f
   endif
   echoerr "You don't have curl or wget to download the package list."
