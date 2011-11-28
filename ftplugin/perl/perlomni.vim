@@ -602,7 +602,7 @@ fun! s:CompClassName(base,context)
 
     let result = s:StringFilter(classnames,a:base)
 
-    if len(result) > g:perlomni_max_class_length 
+    if len(result) > g:perlomni_max_class_length
         cal remove(result,0, g:perlomni_max_class_length)
 
 " Find a better way
