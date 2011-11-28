@@ -670,14 +670,12 @@ fun! CPANParseSourceList(file)
   if !filereadable(g:cpan_mod_cachef) || getftime(g:cpan_mod_cachef) < getftime(a:file)
     let args = []
     if executable('zcat')
-      let args = ['zcat', a:file, '|' , 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
+      let args = ['zcat', a:file, '|' , 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1']
     else
-      let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1', '>', g:cpan_mod_cachef]
+      let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1']
     endif
-    call call(function("s:system"), args)
-    if v:shell_error 
-      echoerr v:shell_error
-    endif
+    let data = call(function("s:system"), args)
+    cal writefile(split(data, "\n"), g:cpan_mod_cachef)
   endif
   return readfile( g:cpan_mod_cachef )
 endf
