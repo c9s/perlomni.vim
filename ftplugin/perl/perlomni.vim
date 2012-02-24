@@ -533,7 +533,11 @@ fun! s:CompClassFunction(base,context)
     let funclist = type(l:cache2) != type(0) ? l:cache2 : SetCacheNS('class_func_all',class,s:scanFunctionFromClass(class))
 
     let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-    return SetCacheNS('classfunc',class.'_'.a:base,result)
+    let funclist = SetCacheNS('classfunc',class.'_'.a:base,result)
+    if g:perlomni_show_hidden_func == 0
+        call filter(funclist, 'v:val !~ "^_"')
+    endif
+    return funclist
 endf
 
 
@@ -571,7 +575,10 @@ fun! s:CompObjectMethod(base,context)
             cal extend(funclist,s:scanFunctionFromClass( cls ))
         endfor
         let result = filter( copy(funclist),"stridx(v:val,'".a:base."') == 0 && v:val != '".a:base."'" )
-        return SetCacheNS('objectMethod',objvarname.'_'.a:base,result)
+        let funclist = SetCacheNS('objectMethod',objvarname.'_'.a:base,result)
+    endif
+    if g:perlomni_show_hidden_func == 0
+        call filter(funclist, 'v:val !~ "^_"')
     endif
     return funclist
 endf
@@ -1201,3 +1208,4 @@ cal s:defopt('perlomni_max_class_length',40)
 cal s:defopt('perlomni_sort_class_by_lenth',0)
 cal s:defopt('perlomni_use_cache',1)
 cal s:defopt('perlomni_use_perlinc',1)
+cal s:defopt('perlomni_show_hidden_func',0)
