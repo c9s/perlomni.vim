@@ -2,7 +2,7 @@
 "
 " Plugin:  perlomni.vim
 " Author:  Cornelius
-" Email:   cornelius.howl@gmail.com 
+" Email:   cornelius.howl@gmail.com
 " Version: 1.75
 let s:debug_flag = 0
 runtime 'plugin/perlomni-data.vim'
@@ -34,12 +34,12 @@ fun! s:system(...)
     if has('win32')
         let ext = toupper(substitute(a:1, '^.*\.', '.', ''))
         if !len(filter(split($PATHEXT, ';'), 'toupper(v:val) == ext'))
-            if ext == '.PL' && executable(g:perlomni_perl) 
+            if ext == '.PL' && executable(g:perlomni_perl)
                 let cmd = g:perlomni_perl
-            elseif ext == '.PY' && executable('python') 
-                let cmd = 'python' 
-            elseif ext == '.RB' && executable('ruby') 
-                let cmd = 'ruby' 
+            elseif ext == '.PY' && executable('python')
+                let cmd = 'python'
+            elseif ext == '.RB' && executable('ruby')
+                let cmd = 'ruby'
             endif
         endif
         for a in a:000
@@ -72,16 +72,16 @@ let s:cache_last   =  { }
 
 fun! GetCacheNS(ns,key)
     let key = a:ns . "_" . a:key
-    if has_key( s:cache_expiry , key ) 
+    if has_key( s:cache_expiry , key )
         let expiry = s:cache_expiry[ key ]
         let last_ts = s:cache_last[ key ]
-    else 
+    else
         let expiry = g:perlomni_cache_expiry
         let last_ts = s:last_cache_ts
     endif
 
     if localtime() - last_ts > expiry
-        if has_key( s:cache_expiry , key ) 
+        if has_key( s:cache_expiry , key )
             let s:cache_last[ key ] = localtime()
         else
             let s:last_cache_ts = localtime()
@@ -129,7 +129,7 @@ fun! s:baseClassFromFile(file)
     if type(l:cache) != type(0)
         return l:cache
     endif
-    let list = split(s:system(s:vimbin.'grep-pattern.pl', a:file, 
+    let list = split(s:system(s:vimbin.'grep-pattern.pl', a:file,
         \ '^(?:use\s+(?:base|parent)\s+|extends\s+)(.*);'),"\n")
     let classes = [ ]
     for i in range(0,len(list)-1)
@@ -144,7 +144,7 @@ endf
 
 fun! s:findBaseClass(class)
     let file = s:locateClassFile(a:class)
-    if file == '' 
+    if file == ''
         return []
     endif
     return s:baseClassFromFile(file)
@@ -159,7 +159,7 @@ fun! s:findCurrentClassBaseClass()
         if line =~ '^package\s\+'
             break
         elseif line =~ '^\(use\s\+\(base\|parent\)\|extends\)\s\+'
-            let args =  matchstr( line , 
+            let args =  matchstr( line ,
                         \ '\(^\(use\s\+\(base\|parent\)\|extends\)\s\+\(qw\)\=[''"(\[]\)\@<=\_.*\([\)\]''"]\s*;\)\@=' )
             let args = substitute( args  , '\_[ ]\+' , ' ' , 'g' )
             let mods = split(  args , '\s' )
@@ -184,7 +184,7 @@ fun! s:locateClassFile(class)
     let filepath = substitute(a:class,'::','/','g') . '.pm'
     cal insert(paths,'lib')
     for path in paths
-        if filereadable( path . '/' . filepath ) 
+        if filereadable( path . '/' . filepath )
             return SetCacheNS('clsfpath',a:class,path .'/' . filepath)
         endif
     endfor
@@ -263,7 +263,7 @@ fun! PerlComplete(findstart, base)
         "let s_pos = s:FindSpace(start,lnum,line)
 
         " XXX: read lines from current buffer
-        " let b:lines   = 
+        " let b:lines   =
         let b:context  = getline('.')
         let b:lcontext = strpart(getline('.'),0,col('.')-1)
         let b:colpos   = col('.') - 1
@@ -300,7 +300,7 @@ fun! PerlComplete(findstart, base)
 
             " lefttext: context matched text
             " basetext: backward matched text
-            
+
             let lefttext = strpart(b:lcontext,0,bwidx)
             let basetext = strpart(b:lcontext,bwidx)
 
@@ -322,22 +322,22 @@ fun! PerlComplete(findstart, base)
             " sleep 3
 
 
-            if ( has_key( rule ,'head') 
-                    \ && b:paragraph_head =~ rule.head 
-                    \ && lefttext =~ rule.context ) 
+            if ( has_key( rule ,'head')
+                    \ && b:paragraph_head =~ rule.head
+                    \ && lefttext =~ rule.context )
                 \ || ( ! has_key(rule,'head') && lefttext =~ rule.context  )
 
-                if has_key( rule ,'contains' ) 
+                if has_key( rule ,'contains' )
                     let l:text = rule.contains
                     let l:found = 0
                     " check content
-                    for line in b:lines 
-                        if line =~ rule.contains 
+                    for line in b:lines
+                        if line =~ rule.contains
                             let l:found = 1
                             break
                         endif
                     endfor
-                    if ! l:found 
+                    if ! l:found
                         " next rule
                         continue
                     endif
@@ -363,7 +363,7 @@ fun! PerlComplete(findstart, base)
         endfor
 
         return first_bwidx
-    else 
+    else
         return b:comps
     endif
 
@@ -423,11 +423,11 @@ fun! s:CompMooseIsa(base,context)
 endf
 
 fun! s:CompMooseAttribute(base,context)
-    let values = [ 'default' , 'is' , 'isa' , 
-                \ 'label' , 'predicate', 'metaclass', 'label', 
-                \ 'expires_after', 
+    let values = [ 'default' , 'is' , 'isa' ,
+                \ 'label' , 'predicate', 'metaclass', 'label',
+                \ 'expires_after',
                 \ 'refresh_with' , 'required' , 'coerce' , 'does' , 'required',
-                \ 'weak_ref' , 'lazy' , 'auto_deref' , 'trigger', 
+                \ 'weak_ref' , 'lazy' , 'auto_deref' , 'trigger',
                 \ 'handles' , 'traits' , 'builder' , 'clearer',
                 \ 'predicate' , 'lazy_build', 'initializer', 'documentation' ]
     cal map(values,'v:val . " => "')
@@ -439,8 +439,8 @@ fun! s:CompMooseRoleAttr(base,context)
     return s:StringFilter(attrs,a:base)
 endf
 fun! s:CompMooseStatement(base,context)
-    let sts = [ 
-        \'extends' , 'after' , 'before', 'has' , 
+    let sts = [
+        \'extends' , 'after' , 'before', 'has' ,
         \'requires' , 'with' , 'override' , 'method',
         \'super', 'around', 'inner', 'augment', 'confess' , 'blessed' ]
     return s:StringFilter(sts,a:base)
@@ -495,8 +495,8 @@ endf
 
 fun! s:CompCurrentBaseFunction(base,context)
     let all_mods = s:findCurrentClassBaseClass()
-    let funcs = [ ] 
-    for mod in all_mods 
+    let funcs = [ ]
+    for mod in all_mods
         let sublist = s:scanFunctionFromClass(mod)
         cal extend(funcs,sublist)
     endfor
@@ -550,7 +550,7 @@ fun! s:CompObjectMethod(base,context)
 
     " Scan from current buffer
     " echo 'scan from current buffer' | sleep 100ms
-    if ! exists('b:objvarMapping') 
+    if ! exists('b:objvarMapping')
             \ || ! has_key(b:objvarMapping,objvarname)
         let minnr = line('.') - 10
         let minnr = minnr < 1 ? 1 : minnr
@@ -644,14 +644,14 @@ fun! s:CompUnderscoreTokens(base,context)
 endf
 
 fun! s:CompPodSections(base,context)
-    return s:StringFilter( [ 'NAME' , 'SYNOPSIS' , 'AUTHOR' , 'DESCRIPTION' , 'FUNCTIONS' , 
+    return s:StringFilter( [ 'NAME' , 'SYNOPSIS' , 'AUTHOR' , 'DESCRIPTION' , 'FUNCTIONS' ,
         \ 'USAGE' , 'OPTIONS' , 'BUG REPORT' , 'DEVELOPMENT' , 'NOTES' , 'ABOUT' , 'REFERENCES' ] , a:base )
 endf
 
 fun! s:CompPodHeaders(base,context)
     return s:StringFilter(
-        \ [ 'head1' , 'head2' , 'head3' , 'begin' , 'end', 
-        \   'encoding' , 'cut' , 'pod' , 'over' , 
+        \ [ 'head1' , 'head2' , 'head3' , 'begin' , 'end',
+        \   'encoding' , 'cut' , 'pod' , 'over' ,
         \   'item' , 'for' , 'back' ] , a:base )
 endf
 
@@ -689,7 +689,7 @@ endf
 " XXX: copied from cpan.vim plugin , should be reused.
 " fetch source list from remote
 fun! CPANSourceLists()
-  let paths = [ 
+  let paths = [
         \expand('~/.cpanplus/02packages.details.txt.gz'),
         \expand('~/.cpan/sources/modules/02packages.details.txt.gz')
         \]
@@ -697,8 +697,8 @@ fun! CPANSourceLists()
     call extend( paths , g:cpan_user_defined_sources )
   endif
 
-  for f in paths 
-    if filereadable( f ) 
+  for f in paths
+    if filereadable( f )
       return f
     endif
   endfor
@@ -790,7 +790,7 @@ fun! s:scanCurrentExportFunction()
     let funcs = [ ]
     for line in lines
         let m = matchstr( line , '\(^use\s\+\)\@<=' . s:mod_pattern )
-        if strlen(m) > 0 
+        if strlen(m) > 0
             cal extend(funcs ,s:scanModuleExportFunctions(m))
         endif
     endfor
@@ -821,7 +821,7 @@ endf
 fun! s:scanObjectVariableLines(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    let varlist = split(s:system(s:vimbin.'grep-objvar.pl', buffile),"\n") 
+    let varlist = split(s:system(s:vimbin.'grep-objvar.pl', buffile),"\n")
     let b:objvarMapping = { }
     for item in varlist
         let [varname,classname] = split(item)
@@ -842,7 +842,7 @@ fun! s:scanObjectVariableFile(file)
 "         return l:cache
 "     endif
 
-    let list = split(s:system(s:vimbin.'grep-objvar.pl', expand(a:file)),"\n") 
+    let list = split(s:system(s:vimbin.'grep-objvar.pl', expand(a:file)),"\n")
     let b:objvarMapping = { }
     for item in list
         let [varname,classname] = split(item)
@@ -863,7 +863,7 @@ endf
 fun! s:scanHashVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '%(\w+)', '|', 'sort', '|', 'uniq'),"\n") 
+    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '%(\w+)', '|', 'sort', '|', 'uniq'),"\n")
 endf
 " echo s:scanHashVariable( getline(1,'$') )
 
@@ -896,7 +896,7 @@ endf
 fun! s:scanVariable(lines)
     let buffile = tempname()
     cal writefile(a:lines,buffile)
-    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '\$(\w+)', '|', 'sort', '|', 'uniq'),"\n") 
+    return split(s:system(s:vimbin.'grep-pattern.pl', buffile, '\$(\w+)', '|', 'sort', '|', 'uniq'),"\n")
 endf
 
 fun! s:scanFunctionFromList(lines)
@@ -912,7 +912,7 @@ endf
 fun! s:scanFunctionFromClass(class)
     let classfile = s:locateClassFile(a:class)
     return classfile == '' ? [ ] :
-        \ extend( s:scanFunctionFromSingleClassFile(classfile), 
+        \ extend( s:scanFunctionFromSingleClassFile(classfile),
             \ s:scanFunctionFromBaseClassFile(classfile) )
 endf
 " echo s:scanFunctionFromClass('Jifty::DBI::Record')
@@ -955,18 +955,18 @@ endf
 
 " XXX: provide a dictinoary loader
 fun! s:CompDBIxMethod(base,context)
-    return s:StringFilter([ 
-        \ "table" , "table_class" , "add_columns" , 
+    return s:StringFilter([
+        \ "table" , "table_class" , "add_columns" ,
         \ "set_primary_key" , "has_many" ,
         \ "many_to_many" , "belongs_to" , "add_columns" ,
-        \ "might_have" , 
+        \ "might_have" ,
         \ "has_one",
         \ "add_unique_constraint",
         \ "resultset_class",
         \ "load_namespaces",
         \ "load_components",
         \ "load_classes",
-        \ "resultset_attributes" , 
+        \ "resultset_attributes" ,
         \ "result_source_instance" ,
         \ "mk_group_accessors",
         \ "storage"
@@ -976,7 +976,7 @@ endf
 fun! s:scanDBIxResultClasses()
     let path = 'lib'
     let l:cache = GetCacheNS('dbix_c',path)
-    if type(l:cache) != type(0) 
+    if type(l:cache) != type(0)
         return l:cache
     endif
 
@@ -1004,12 +1004,12 @@ fun! s:CompExportFunction(base,context)
     return filter(copy(l:funcs),'v:val.word =~ a:base')
 endf
 
-fun! s:CompModuleInstallExport(base,context) 
+fun! s:CompModuleInstallExport(base,context)
     let words = g:p5_mi_export
     return filter( copy(words) , 'v:val.word =~ a:base' )
 endf
 
-" RULES 
+" RULES
 " ====================================================================
 " MODULE-INSTALL FUNCTIONS ================================={{{
 
@@ -1020,7 +1020,7 @@ cal s:rule({
     \'context'   :  '^$',
     \'comp'      :  function('s:CompModuleInstallExport') })
 
-cal s:rule(  { 
+cal s:rule(  {
     \'context': '^\(requires\|build_requires\|test_requires\)\s',
     \'backward': '[a-zA-Z0-9:]*$',
     \'comp': function('s:CompClassName') })
@@ -1038,7 +1038,7 @@ cal s:rule({
 "   use contains to check file content, do complete dbix methods if and only
 "   if there is a DBIx::Class::Core
 "
-" because there is a rule take 'only' attribute, 
+" because there is a rule take 'only' attribute,
 " so the rest rules willn't be check.
 " for the reason , put the dbix completion rule before them.
 " will take a look later ... (I hope)
@@ -1058,41 +1058,41 @@ cal s:rule( {
 "}}}
 
 " Moose Completion Rules {{{
-cal s:rule({ 
-    \'only':1, 
-    \'head': '^has\s\+\w\+' , 
-    \'context': '\s\+is\s*=>\s*$'  , 
-    \'backward': '[''"]\?\w*$' , 
+cal s:rule({
+    \'only':1,
+    \'head': '^has\s\+\w\+' ,
+    \'context': '\s\+is\s*=>\s*$'  ,
+    \'backward': '[''"]\?\w*$' ,
     \'comp': function('s:CompMooseIs') } )
 
-cal s:rule({ 
-    \'only':1, 
-    \'head': '^has\s\+\w\+' , 
-    \'context': '\s\+\(isa\|does\)\s*=>\s*$' , 
-    \'backward': '[''"]\?\S*$' , 
+cal s:rule({
+    \'only':1,
+    \'head': '^has\s\+\w\+' ,
+    \'context': '\s\+\(isa\|does\)\s*=>\s*$' ,
+    \'backward': '[''"]\?\S*$' ,
     \'comp': function('s:CompMooseIsa') } )
-cal s:rule({ 'only':1, 'head': '^has\s\+\w\+' , 
-    \'context': '\s\+\(reader\|writer\|clearer\|predicate\|builder\)\s*=>\s*[''"]$' , 
-    \'backward': '\w*$', 
+cal s:rule({ 'only':1, 'head': '^has\s\+\w\+' ,
+    \'context': '\s\+\(reader\|writer\|clearer\|predicate\|builder\)\s*=>\s*[''"]$' ,
+    \'backward': '\w*$',
     \'comp': function('s:CompBufferFunction') })
 
-cal s:rule({ 
-    \'only':1, 
-    \'head': '^has\s\+\w\+' , 
-    \'context': '^\s*$' , 
-    \'backward': '\w*$', 
+cal s:rule({
+    \'only':1,
+    \'head': '^has\s\+\w\+' ,
+    \'context': '^\s*$' ,
+    \'backward': '\w*$',
     \'comp': function('s:CompMooseAttribute') } )
 
-cal s:rule({ 
-    \'only':1, 
-    \'head': '^with\s\+', 
-    \'context': '^\s*-$', 
-    \'backward': '\w\+$', 
+cal s:rule({
+    \'only':1,
+    \'head': '^with\s\+',
+    \'context': '^\s*-$',
+    \'backward': '\w\+$',
     \'comp': function('s:CompMooseRoleAttr') } )
 
-cal s:rule({ 
-    \'context': '^\s*$', 
-    \'backward': '\w\+$', 
+cal s:rule({
+    \'context': '^\s*$',
+    \'backward': '\w\+$',
     \'comp':function('s:CompMooseStatement')})
 
 " }}}
@@ -1116,81 +1116,81 @@ cal s:rule({
 "     use base 'ClassName
 
 cal s:rule({
-    \'only':1, 
-    \'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' , 
-    \'backward': '\<[A-Z][A-Za-z0-9_:]*$', 
+    \'only':1,
+    \'context': '\<\(new\|use\)\s\+\(\(base\|parent\)\s\+\(qw\)\?[''"(/]\)\?$' ,
+    \'backward': '\<[A-Z][A-Za-z0-9_:]*$',
     \'comp': function('s:CompClassName') } )
 
 
 cal s:rule({
-    \'only':1, 
-    \'context': '^extends\s\+[''"]$' , 
-    \'backward': '\<\u[A-Za-z0-9_:]*$', 
+    \'only':1,
+    \'context': '^extends\s\+[''"]$' ,
+    \'backward': '\<\u[A-Za-z0-9_:]*$',
     \'comp': function('s:CompClassName') } )
 
 cal s:rule({
-    \'context': '^\s*\(sub\|method\)\s\+'              , 
-    \'backward': '\<\w\+$' , 
-    \'only':1 , 
+    \'context': '^\s*\(sub\|method\)\s\+'              ,
+    \'backward': '\<\w\+$' ,
+    \'only':1 ,
     \'comp': function('s:CompCurrentBaseFunction') })
 
 cal s:rule({
-    \'only':1, 
+    \'only':1,
     \'context': '^\s*my\s\+\$self' ,
-    \'backward': '\s*=\s\+shift;', 
+    \'backward': '\s*=\s\+shift;',
     \'comp': [ ' = shift;' ] })
 
 " variable completion
 
 cal s:rule({
-    \'only':1, 
-    \'context': '\s*\$$' , 
-    \'backward': '\<\U\w*$' , 
+    \'only':1,
+    \'context': '\s*\$$' ,
+    \'backward': '\<\U\w*$' ,
     \'comp': function('s:CompVariable') })
 
 cal s:rule({
-    \'only':1, 
-    \'context': '%$', 
-    \'backward': '\<\U\w\+$', 
+    \'only':1,
+    \'context': '%$',
+    \'backward': '\<\U\w\+$',
     \'comp': function('s:CompHashVariable') })
 
 cal s:rule({
-    \'only':1, 
-    \'context': '@$', 
-    \'backward': '\<\U\w\+$', 
+    \'only':1,
+    \'context': '@$',
+    \'backward': '\<\U\w\+$',
     \'comp': function('s:CompArrayVariable') })
 
 cal s:rule({
-    \'only':1, 
-    \'context': '&$', 
-    \'backward': '\<\U\w\+$', 
+    \'only':1,
+    \'context': '&$',
+    \'backward': '\<\U\w\+$',
     \'comp': function('s:CompBufferFunction') })
 
 
 " function completion
 cal s:rule({
-    \'context': '\(->\|\$\)\@<!$',        
-    \'backward': '\<\w\+$' , 
+    \'context': '\(->\|\$\)\@<!$',
+    \'backward': '\<\w\+$' ,
     \'comp': function('s:CompFunction') })
 
-cal s:rule({'context': '\$\(self\|class\)->$'  , 
-    \'backward': '\<\w\+$' , 
-    \'only':1 , 
+cal s:rule({'context': '\$\(self\|class\)->$'  ,
+    \'backward': '\<\w\+$' ,
+    \'only':1 ,
     \'comp': function('s:CompBufferFunction') })
 
 cal s:rule({
-    \'context': '\$\w\+->$'  ,            
-    \'backward': '\<\w\+$' , 
+    \'context': '\$\w\+->$'  ,
+    \'backward': '\<\w\+$' ,
     \'comp': function('s:CompObjectMethod') })
 
 cal s:rule({
-    \'context': '\<[a-zA-Z0-9:]\+->$'  ,  
-    \'backward': '\w*$' , 
+    \'context': '\<[a-zA-Z0-9:]\+->$'  ,
+    \'backward': '\w*$' ,
     \'comp': function('s:CompClassFunction') })
 
 cal s:rule({
-    \'context': '$' , 
-    \'backward': '\<\u\w*::[a-zA-Z0-9:]*$', 
+    \'context': '$' ,
+    \'backward': '\<\u\w*::[a-zA-Z0-9:]*$',
     \'comp': function('s:CompClassName') } )
 
 " string completion

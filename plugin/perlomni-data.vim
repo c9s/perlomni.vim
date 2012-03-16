@@ -15,7 +15,7 @@ let g:p5bfunctions =
       \ 'built-in' )
 
 " XXX: should be automatically build by script ( utils/build_mi_args.pl )
-let g:p5_mi_export = 
+let g:p5_mi_export =
     \ s:build_hash( split( 'resources install_as_vendor keywords bundles write_mymeta_json recommends sign no_index perl_version_from name install_requires provides add_metadata author module_name repository version author_from test_requires_from configure_requires perl_version install_as_cpan all_from version_from feature read write_mymeta_yaml write install_as_site authors requires_from bugtracker_from auto_provides homepage abstract abstract_from test_requires distribution_type installdirs bugtracker dynamic_config license_from requires install_as_core features name_from license import build_requires tests' ) ,
-    \ 'Module::Install::Metadata' ) 
+    \ 'Module::Install::Metadata' )
 
