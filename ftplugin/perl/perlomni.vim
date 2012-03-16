@@ -34,8 +34,8 @@ fun! s:system(...)
     if has('win32')
         let ext = toupper(substitute(a:1, '^.*\.', '.', ''))
         if !len(filter(split($PATHEXT, ';'), 'toupper(v:val) == ext'))
-            if ext == '.PL' && executable('perl') 
-                let cmd = 'perl'
+            if ext == '.PL' && executable(g:perlomni_perl) 
+                let cmd = g:perlomni_perl
             elseif ext == '.PY' && executable('python') 
                 let cmd = 'python' 
             elseif ext == '.RB' && executable('ruby') 
@@ -178,7 +178,7 @@ fun! s:locateClassFile(class)
 
     let paths = split(&path,',')
     if g:perlomni_use_perlinc || &filetype != 'perl'
-        let paths = split( s:system('perl', '-e', 'print join(",",@INC)') ,',')
+        let paths = split( s:system(g:perlomni_perl, '-e', 'print join(",",@INC)') ,',')
     endif
 
     let filepath = substitute(a:class,'::','/','g') . '.pm'
@@ -745,7 +745,7 @@ endf
 
 
 fun! s:runPerlEval(mtext,code)
-    let cmd = 'perl -M' . a:mtext . ' -e "' . escape(a:code,'"') . '"'
+    let cmd = g:perlomni_perl . ' -M' . a:mtext . ' -e "' . escape(a:code,'"') . '"'
     return system(cmd)
 endf
 
@@ -1209,3 +1209,4 @@ cal s:defopt('perlomni_sort_class_by_lenth',0)
 cal s:defopt('perlomni_use_cache',1)
 cal s:defopt('perlomni_use_perlinc',1)
 cal s:defopt('perlomni_show_hidden_func',0)
+cal s:defopt('perlomni_perl','perl')
