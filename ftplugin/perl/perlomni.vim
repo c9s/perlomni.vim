@@ -3,7 +3,7 @@
 " Plugin:  perlomni.vim
 " Author:  Cornelius
 " Email:   cornelius.howl@gmail.com
-" Version: 1.75
+" Version: 2.5
 let s:debug_flag = 0
 
 let s:mod_pattern = '[a-zA-Z][a-zA-Z0-9:]\+'

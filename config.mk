@@ -1,6 +1,6 @@
 
 NAME=perlomni.vim
-VERSION=2.43
+VERSION=2.5
 DIRS=ftplugin plugin bin
 
 bundle-deps:
