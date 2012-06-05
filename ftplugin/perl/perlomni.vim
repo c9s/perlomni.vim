@@ -5,8 +5,8 @@
 " Email:   cornelius.howl@gmail.com
 " Version: 1.75
 let s:debug_flag = 0
-runtime 'plugin/perlomni-data.vim'
-runtime 'plugin/perlomni-util.vim'
+runtime plugin/perlomni-data.vim
+runtime plugin/perlomni-util.vim
 
 let s:mod_pattern = '[a-zA-Z][a-zA-Z0-9:]\+'
 
