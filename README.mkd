@@ -123,9 +123,8 @@ Please feel free to ask commit bit of this. just drop me a line. :-)
 Author
 ======
 
-Cornelius (林佑安) 
-
-twitter:  http://twitter.com/c9s
+- Cornelius (林佑安) cornelius.howl@gmail.com
+- Mattn (Yasuhiro Matsumoto) mattn.jp@gmail.com
 
 Samples
 =======
