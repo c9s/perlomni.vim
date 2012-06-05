@@ -5,8 +5,6 @@
 " Email:   cornelius.howl@gmail.com
 " Version: 1.75
 let s:debug_flag = 0
-runtime 'plugin/perlomni-data.vim'
-runtime 'plugin/perlomni-util.vim'
 
 let s:mod_pattern = '[a-zA-Z][a-zA-Z0-9:]\+'
 
@@ -488,7 +486,7 @@ endf
 " perl builtin functions
 fun! s:CompFunction(base,context)
     let efuncs = s:scanCurrentExportFunction()
-    let flist = copy(g:p5bfunctions)
+    let flist = copy(perlomni#data#p5bfunctions())
     cal extend(flist,efuncs)
     return filter(flist,'v:val.word =~ "^".a:base')
 endf
@@ -1005,7 +1003,7 @@ fun! s:CompExportFunction(base,context)
 endf
 
 fun! s:CompModuleInstallExport(base,context)
-    let words = g:p5_mi_export
+    let words = perlomni#data#p5_mi_export()
     return filter( copy(words) , 'v:val.word =~ a:base' )
 endf
 
