@@ -671,12 +671,8 @@ fun! CPANParseSourceList(file)
     let g:cpan_mod_cachef = expand('~/.vim-cpan-module-cache')
   endif
   if !filereadable(g:cpan_mod_cachef) || getftime(g:cpan_mod_cachef) < getftime(a:file)
-    let args = []
-    if executable('zcat')
-      let args = ['zcat', a:file, '|' , 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1']
-    else
-      let args = ['cat', a:file, '|', 'gunzip', '|', 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1']
-    endif
+    let args = ['cat', a:file, '|', 'gzip', '-dc', '|',
+      \ 'grep', '-Ev', '^[A-Za-z0-9-]+: ', '|', 'cut', '-d" "', '-f1']
     let data = call(function("s:system"), args)
     cal writefile(split(data, "\n"), g:cpan_mod_cachef)
   endif
