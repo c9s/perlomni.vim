@@ -1,7 +1,7 @@
 
 NAME=perlomni.vim
 VERSION=2.5
-DIRS=ftplugin plugin bin
+DIRS=ftplugin autoload bin
 
 bundle-deps:
 	$(SHELL) -c true
