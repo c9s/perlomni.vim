@@ -174,7 +174,7 @@ fun! s:locateClassFile(class)
         return l:cache
     endif
 
-    let paths = split(&path,',')
+    let paths = map(split(&path, '\\\@<![, ]'), 'substitute(v:val, ''\\\([, ]\)'', ''\1'', ''g'')')
     if g:perlomni_use_perlinc || &filetype != 'perl'
         let paths = split( s:system(g:perlomni_perl, '-e', 'print join(",",@INC)') ,',')
     endif
