@@ -21,6 +21,8 @@ core rules including:
 * basic Moose completion
 * basic DBIx completion
 
+Supports deoplete completion
+
 
 Requirement
 ===========
@@ -47,6 +49,8 @@ please make sure you've enable filetype plugin your `.vimrc`:
     filetype indent on
 
 NOTE) If you install pathogen.vim , you can make this working without installing.
+
+If you are you want completion as you type and are using neovim you can install https:://github.com/Shougo/deoplete.vim
 
 Usage
 =====
@@ -125,6 +129,13 @@ Author
 
 - Cornelius (林佑安) cornelius.howl@gmail.com
 - Mattn (Yasuhiro Matsumoto) mattn.jp@gmail.com
+
+
+Contibutors
+==========
+- cazador481 (Edward Ash) eddie@ashfamily.net
+
+
 
 Samples
 =======
