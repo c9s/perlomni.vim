@@ -994,7 +994,7 @@ endf
 
 fun! s:CompExportFunction(base,context)
     let m = matchstr( a:context , '\(^use\s\+\)\@<=' . s:mod_pattern )
-    let l:funcs = s:toCompHashList(s:scanModuleExportFunctions(m),m)
+    let l:funcs = s:scanModuleExportFunctions(m)
     return filter(copy(l:funcs),'v:val.word =~ a:base')
 endf
 
